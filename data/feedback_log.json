@@ -1,0 +1,20 @@
+[
+  {
+    "feedback_id": "FB-1001",
+    "timestamp": "2026-08-28 14:20:00",
+    "insight_id": "INS-8401",
+    "rating": "up",
+    "suggested_driver": "Order Volume",
+    "comment": "Confirmed with sales team that promotion ending was the main trigger.",
+    "applied_to_eval": true
+  },
+  {
+    "feedback_id": "FB-1002",
+    "timestamp": "2026-08-30 15:54:43",
+    "insight_id": "INS-8401",
+    "rating": "up",
+    "suggested_driver": "Order Volume",
+    "comment": "Validated via commercial team",
+    "applied_to_eval": true
+  }
+]

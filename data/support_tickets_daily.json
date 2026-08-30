@@ -1,0 +1,42 @@
+[
+  {
+    "ticket_id": "ZD-98121",
+    "timestamp": "2026-08-28T18:45:00Z",
+    "region": "Southwest_Dallas",
+    "category": "Late Delivery",
+    "sentiment": "Negative (-0.88)",
+    "text": "My dinner order took 85 minutes to arrive! The courier driver said there was a strike at the Dallas transit hub. Food was ice cold. I want an immediate full refund.",
+    "refund_requested": true,
+    "refund_amount_usd": 42.5
+  },
+  {
+    "ticket_id": "ZD-98144",
+    "timestamp": "2026-08-28T19:12:00Z",
+    "region": "Southwest_Dallas",
+    "category": "Order Cancellation",
+    "sentiment": "Negative (-0.94)",
+    "text": "App showed delivery in 20 mins, now it says delayed by 60 mins. Cancelled order and ordering from QuickMart instead who has a 15% discount promo active.",
+    "refund_requested": true,
+    "refund_amount_usd": 38.0
+  },
+  {
+    "ticket_id": "ZD-98189",
+    "timestamp": "2026-08-28T19:50:00Z",
+    "region": "Southwest_Dallas",
+    "category": "Courier Unavailability",
+    "sentiment": "Negative (-0.79)",
+    "text": "Unable to find available delivery partner for 30 minutes in North Dallas. App kept searching then timed out.",
+    "refund_requested": false,
+    "refund_amount_usd": 0.0
+  },
+  {
+    "ticket_id": "ZD-98210",
+    "timestamp": "2026-08-28T20:15:00Z",
+    "region": "Southwest_Dallas",
+    "category": "App Interface / Checkout",
+    "sentiment": "Neutral (-0.12)",
+    "text": "Payment went through quickly, but tracking screen froze on Dispatching stage.",
+    "refund_requested": false,
+    "refund_amount_usd": 0.0
+  }
+]

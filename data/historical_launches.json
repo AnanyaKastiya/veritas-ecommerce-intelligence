@@ -1,0 +1,19 @@
+{
+  "hub_id": "HUB_TX_AUSTIN_01",
+  "hub_name": "Austin Central Ultra-Fast Hub",
+  "launch_date": "2026-08-25T08:00:00Z",
+  "hours_live": 72,
+  "current_metrics": {
+    "day_3_gmv_usd": 14850.0,
+    "day_1_gmv_usd": 18200.0,
+    "day_3_change_pct": -18.4,
+    "order_count": 420,
+    "delivery_sla_breach_rate": 5.2
+  },
+  "historical_peer_cohorts": {
+    "dallas_launch_day_3_change_pct": -19.2,
+    "houston_launch_day_3_change_pct": -17.8,
+    "cohort_median_day_3_change_pct": -18.5,
+    "status": "HEALTHY_ON_BENCHMARK"
+  }
+}

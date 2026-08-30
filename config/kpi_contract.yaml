@@ -1,0 +1,135 @@
+version: '2.0.0'
+governance:
+  last_updated: '2026-08-28T00:00:00Z'
+  owner: 'Enterprise Data Governance and Analytics Council'
+  domain: 'Quick-Commerce / Omnichannel Retail'
+
+kpis:
+  gmv:
+    id: 'kpi_gmv'
+    name: 'Gross Merchandise Value (GMV)'
+    description: 'Total monetary value of orders placed before discounts and cancellations.'
+    category: 'Financial / Commercial'
+    unit: 'USD'
+    formula: 'SUM(order_items.quantity * order_items.unit_price)'
+    grain: 'hourly'
+    sources:
+      - table: 'orders_hourly'
+        system: 'PostgreSQL Production Replica'
+        cadence: '10-minute refresh'
+        freshness_sla_mins: 15
+    baseline_logic: 'Bayesian Dynamic Volatility Baseline (Day-of-Week Seasonality)'
+    volatility_envelope_pct: 4.5
+    materiality_threshold_usd: 10000
+    security_tier: 'C_LEVEL_AND_VP'
+    drivers:
+      - 'order_volume'
+      - 'aov'
+      - 'delivery_sla_breach_rate'
+      - 'competitor_price_index'
+
+  order_volume:
+    id: 'kpi_order_volume'
+    name: 'Completed Order Volume'
+    description: 'Total count of successfully completed customer orders.'
+    category: 'Operational / Demand'
+    unit: 'count'
+    formula: 'COUNT(DISTINCT order_id) WHERE status = DELIVERED'
+    grain: 'hourly'
+    sources:
+      - table: 'orders_hourly'
+        system: 'PostgreSQL Production Replica'
+        cadence: '10-minute refresh'
+    baseline_logic: 'Rolling 14-Day Hourly Median with Poisson Dispersion'
+    volatility_envelope_pct: 6.0
+    materiality_threshold_count: 500
+    security_tier: 'OPEN_ENTERPRISE'
+    drivers:
+      - 'app_checkout_conversion_rate'
+      - 'courier_availability'
+      - 'competitor_promotions'
+
+  aov:
+    id: 'kpi_aov'
+    name: 'Average Order Value (AOV)'
+    description: 'Average dollar expenditure per completed order.'
+    category: 'Commercial'
+    unit: 'USD'
+    formula: 'SUM(order_value) / COUNT(order_id)'
+    grain: 'hourly'
+    sources:
+      - table: 'orders_hourly'
+        system: 'PostgreSQL Production Replica'
+    baseline_logic: '7-Day Moving Average'
+    volatility_envelope_pct: 3.5
+    security_tier: 'OPEN_ENTERPRISE'
+    drivers:
+      - 'item_bundle_rate'
+      - 'discount_depth'
+
+  delivery_sla_breach_rate:
+    id: 'kpi_delivery_sla_breach'
+    name: 'Delivery SLA Breach Rate'
+    description: 'Percentage of orders exceeding the 25-minute fast-delivery promise.'
+    category: 'Logistics / Operations'
+    unit: 'percentage'
+    formula: 'COUNT(orders WHERE delivery_time_mins > 25) / COUNT(orders) * 100'
+    grain: 'hourly'
+    sources:
+      - table: 'logistics_telemetry_hourly'
+        system: 'Kafka Fleet Stream / 3PL Dispatcher'
+        cadence: '5-minute stream'
+    baseline_logic: 'Historical SLA Baseline (Upper Control Limit: 8.0%)'
+    alert_threshold_pct: 12.0
+    security_tier: 'OPEN_ENTERPRISE'
+    drivers:
+      - 'courier_strike_active'
+      - 'warehouse_fulfillment_latency'
+      - 'weather_severity_index'
+
+  customer_refund_rate:
+    id: 'kpi_customer_refund'
+    name: 'Customer Ticket and Refund Rate'
+    description: 'Percentage of delivered orders resulting in a support escalation or refund.'
+    category: 'Customer Experience'
+    unit: 'percentage'
+    formula: 'COUNT(refund_tickets) / COUNT(delivered_orders) * 100'
+    grain: 'daily'
+    sources:
+      - table: 'support_tickets_daily'
+        system: 'Zendesk CRM API'
+        cadence: 'Hourly batch sync'
+    baseline_logic: '30-Day Moving Mean'
+    alert_threshold_pct: 3.5
+    security_tier: 'OPEN_ENTERPRISE'
+    drivers:
+      - 'delivery_sla_breach_rate'
+      - 'damaged_item_rate'
+
+personas:
+  executive_vp:
+    role: 'Chief Commercial Officer / VP of Sales'
+    allowed_security_tiers:
+      - 'OPEN_ENTERPRISE'
+      - 'C_LEVEL_AND_VP'
+      - 'CONFIDENTIAL_FINANCIAL'
+    masked_fields: []
+    narrative_focus: 'Strategic revenue leakage, gross margin impact, competitive market risks, board summary'
+    decision_rights:
+      - 'AUTHORIZE_CUSTOMER_REBATES_UPTO_50K'
+      - 'MODIFY_REGIONAL_PRICING_POLICIES'
+      - 'APPROVE_EMERGENCY_3PL_BUDGET'
+
+  operations_lead:
+    role: 'Regional Logistics and Category Operations Manager'
+    allowed_security_tiers:
+      - 'OPEN_ENTERPRISE'
+    masked_fields:
+      - 'gross_margin_usd'
+      - 'contract_take_rate_pct'
+      - 'executive_bonus_pool'
+    narrative_focus: 'Root cause courier delays, warehouse bottleneck telemetry, tactical dispatch levers'
+    decision_rights:
+      - 'REROUTE_ORDERS_TO_BACKUP_3PL'
+      - 'BROADCAST_CUSTOMER_DELAY_NOTICES'
+      - 'TRIGGER_WAREHOUSE_OVERTIME_SHIFTS'

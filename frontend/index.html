@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERITAS — E-Commerce KPI Intelligence & Decision Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0B0F19; color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
+        .glow-indigo { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+        .tab-btn.active { border-bottom: 2px solid #6366F1; color: #818CF8; font-weight: 700; }
+        .dropzone-active { border-color: #10B981 !important; background-color: rgba(16, 185, 129, 0.08) !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- TOP GLOBAL HEADER -->
+    <header class="glass sticky top-0 z-50 border-b border-gray-800 px-6 py-2.5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center font-black text-lg text-white shadow-lg">
+                V
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-base font-extrabold tracking-wider text-white">VERITAS <span class="text-indigo-400 font-normal">E-Commerce Intelligence</span></h1>
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700/50">Round 2 Platform</span>
+                </div>
+                <div class="flex items-center space-x-2 text-[11px] text-gray-400">
+                    <span>Active Dataset: <strong class="text-emerald-400" id="active-dataset-badge"><i class="fa-solid fa-database text-[10px] mr-1"></i>Olist Brazilian E-Commerce</strong></span>
+                    <button onclick="resetToReference()" id="btn-reset-dataset" class="hidden px-2 py-0.5 bg-gray-800 hover:bg-gray-700 text-yellow-400 border border-yellow-700/50 rounded text-[10px] font-bold transition">
+                        <i class="fa-solid fa-rotate-left mr-1"></i>Reset to Olist Reference
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GLOBAL ACTIONS: PERSONA, SCENARIOS, & DATA UPLOADER -->
+        <div class="flex items-center space-x-3">
+            <!-- Add Data Source Button -->
+            <button onclick="openUploadModal()" class="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-lg text-xs flex items-center space-x-1.5 transition shadow">
+                <i class="fa-solid fa-cloud-arrow-up text-[11px]"></i>
+                <span>+ Upload Data (Single / Multi-File)</span>
+            </button>
+
+            <!-- 3 Competition Scenarios Switcher -->
+            <div class="flex items-center bg-gray-900 border border-gray-700 rounded-lg p-1 text-xs">
+                <span class="px-1.5 text-gray-400 font-semibold uppercase text-[9px]">Scenarios:</span>
+                <button onclick="triggerScenario('multi_factor')" id="btn-scen-1" class="px-2 py-1 rounded font-medium transition bg-indigo-600 text-white text-[11px]">🎯 1. Multi-Factor Drop</button>
+                <button onclick="triggerScenario('abstention')" id="btn-scen-2" class="px-2 py-1 rounded font-medium transition text-gray-300 hover:text-white text-[11px]">⚠️ 2. Stale Telemetry (Abstain)</button>
+                <button onclick="triggerScenario('cold_start')" id="btn-scen-3" class="px-2 py-1 rounded font-medium transition text-gray-300 hover:text-white text-[11px]">🚀 3. Sparse History Ramp</button>
+            </div>
+
+            <!-- Role / Persona RBAC Switcher -->
+            <div class="flex items-center bg-gray-900 border border-indigo-700/50 rounded-lg p-1 text-xs">
+                <span class="px-1.5 text-indigo-300 font-semibold uppercase text-[9px]">Role:</span>
+                <button onclick="setPersona('business_manager')" id="btn-role-mgr" class="px-2.5 py-1 rounded font-bold transition bg-indigo-600 text-white text-[11px] flex items-center space-x-1 shadow">
+                    <i class="fa-solid fa-user-tie text-[10px]"></i>
+                    <span>👔 Manager</span>
+                </button>
+                <button onclick="setPersona('data_analyst')" id="btn-role-ana" class="px-2.5 py-1 rounded font-medium transition text-gray-300 hover:text-white text-[11px] flex items-center space-x-1">
+                    <i class="fa-solid fa-chart-pie text-[10px]"></i>
+                    <span>📊 Analyst</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- PERSONA ACTIVE BRIEFING BANNER -->
+    <div id="persona-briefing-bar" class="bg-indigo-950/60 border-b border-indigo-800/40 px-6 py-1.5 flex items-center justify-between text-xs">
+        <div class="flex items-center space-x-2 text-indigo-200">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+            <span id="persona-banner-text" class="font-semibold">Active Mode: <strong>👔 Business Manager</strong> — Strategic executive summaries, P&L exposure, and 1-click action approvals.</span>
+        </div>
+        <span id="persona-access-tag" class="text-[10px] font-mono bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700">STRATEGIC_FINANCIAL_CLEARANCE</span>
+    </div>
+
+    <!-- NAVIGATION TABS BAR (THE 7 MAJOR SECTIONS) -->
+    <nav class="glass border-b border-gray-800 px-6 flex items-center space-x-6 text-xs text-gray-400">
+        <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn active py-3 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-gauge-high"></i>
+            <span>① Overview</span>
+        </button>
+        <button onclick="switchTab('explorer')" id="tab-explorer" class="tab-btn py-3 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+            <span>② KPI Explorer</span>
+        </button>
+        <button onclick="switchTab('drivers')" id="tab-drivers" class="tab-btn py-3 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-network-wired"></i>
+            <span>③ Driver Analysis</span>
+        </button>
+        <button onclick="switchTab('evidence')" id="tab-evidence" class="tab-btn py-3 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>④ Evidence & Lineage</span>
+        </button>
+        <button onclick="switchTab('actions')" id="tab-actions" class="tab-btn py-3 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-bolt text-yellow-400"></i>
+            <span>⑤ Action Center</span>
+        </button>
+        <button onclick="switchTab('chat')" id="tab-chat" class="tab-btn py-3 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-comments text-indigo-400"></i>
+            <span>⑥ Ask the Engine</span>
+        </button>
+        <button onclick="switchTab('feedback')" id="tab-feedback" class="tab-btn py-3 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-rotate text-emerald-400"></i>
+            <span>⑦ Feedback Loop</span>
+        </button>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-6 py-5 w-full flex-1 space-y-5">
+
+        <!-- ========================================================= -->
+        <!-- SECTION ①: OVERVIEW / HOME                                 -->
+        <!-- ========================================================= -->
+        <section id="sec-overview" class="space-y-5">
+            <!-- 5 KPI HEALTH CARDS -->
+            <div>
+                <div class="flex items-center justify-between mb-2.5">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-heart-pulse text-indigo-400"></i>
+                        <span>E-Commerce KPI Health Monitoring (Reconciled from Orders, Items, & Context)</span>
+                    </h2>
+                    <span class="text-[11px] text-gray-400">Weekly Cycle • Refresh Cadence: Daily / Real-Time</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-3.5" id="overview-kpi-grid">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+            </div>
+
+            <!-- TOP INSIGHT HERO BANNER -->
+            <div class="glass p-5 rounded-2xl border border-red-500/30 glow-red space-y-3">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="w-8 h-8 rounded-xl bg-red-950 text-red-400 flex items-center justify-center font-bold text-sm border border-red-800">
+                            🔴
+                        </span>
+                        <div>
+                            <h3 class="text-base font-extrabold text-white" id="hero-insight-title">Executive Briefing: Revenue declined 8.4% (-$27,801 USD) this week</h3>
+                            <p class="text-xs text-gray-400" id="hero-insight-sub">Identified multi-factor movement across orders and catalog items</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span id="hero-conf-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                            <i class="fa-solid fa-certificate text-[10px] mr-1"></i> Confidence: 84% (High)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 3 DRIVER ATTRIBUTION SUMMARY CHIPS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1" id="hero-driver-chips">
+                    <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+                        <div class="text-[10px] uppercase font-bold text-indigo-400">Primary Driver (51%)</div>
+                        <div class="text-xs font-semibold text-white mt-0.5" id="chip-driver-1-title">Order Volume Contraction</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5" id="chip-driver-1-desc">Orders ↓ 5.2% in Health & Beauty</div>
+                    </div>
+                    <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+                        <div class="text-[10px] uppercase font-bold text-purple-400">Secondary Driver (24%)</div>
+                        <div class="text-xs font-semibold text-white mt-0.5" id="chip-driver-2-title">Product Mix Shift</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5" id="chip-driver-2-desc">High-value item share ↓ 6.4%</div>
+                    </div>
+                    <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+                        <div class="text-[10px] uppercase font-bold text-amber-400">Tertiary Driver (15%)</div>
+                        <div class="text-xs font-semibold text-white mt-0.5" id="chip-driver-3-title">Payment Timeouts</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5" id="chip-driver-3-desc">Boleto/Card timeouts +3.8%</div>
+                    </div>
+                </div>
+
+                <!-- RECOMMENDED ACTION & QUICK BUTTONS -->
+                <div class="flex items-center justify-between pt-2 border-t border-gray-800/80">
+                    <div class="text-xs text-gray-300">
+                        <strong class="text-yellow-400">Recommended Action:</strong>
+                        <span id="hero-action-text" class="ml-1">Review promotional pricing in Health & Beauty and clear carrier logistics queues in São Paulo.</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="switchTab('drivers')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs rounded-lg border border-gray-700 transition">
+                            View Driver Analysis
+                        </button>
+                        <button onclick="switchTab('evidence')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs rounded-lg border border-gray-700 transition">
+                            View Evidence
+                        </button>
+                        <button onclick="switchTab('actions')" class="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs rounded-lg shadow-lg transition flex items-center space-x-1">
+                            <i class="fa-solid fa-bolt text-yellow-300"></i>
+                            <span>Take Action</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================= -->
+        <!-- SECTION ②: KPI EXPLORER                                   -->
+        <!-- ========================================================= -->
+        <section id="sec-explorer" class="space-y-4 hidden">
+            <!-- SLICER CONTROLS -->
+            <div class="glass p-4 rounded-xl flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase">Select KPI:</label>
+                        <select id="exp-kpi-select" onchange="updateExplorer()" class="bg-gray-800 text-white rounded p-1.5 text-xs border border-gray-700 outline-none">
+                            <option value="revenue" selected>Revenue (GMV)</option>
+                            <option value="orders">Order Volume</option>
+                            <option value="aov">Average Order Value</option>
+                            <option value="delivery">On-Time Delivery Rate</option>
+                            <option value="reviews">Review Score</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase">Period:</label>
+                        <select class="bg-gray-800 text-white rounded p-1.5 text-xs border border-gray-700 outline-none">
+                            <option>Last 7 Days (Latest Cycle)</option>
+                            <option>Last 30 Days</option>
+                            <option>Quarter-to-Date</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase">Dimension Slicer:</label>
+                        <select id="exp-dim-select" onchange="updateExplorer()" class="bg-gray-800 text-white rounded p-1.5 text-xs border border-gray-700 outline-none">
+                            <option value="category" selected>Product Category</option>
+                            <option value="region">Geographic State / Region</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <span class="text-xs text-gray-400">Total Analyzed Metric</span>
+                    <div class="text-lg font-black text-white" id="exp-total-val">$303,165 USD <span class="text-xs text-red-400 font-bold" id="exp-delta-val">↓ 8.4%</span></div>
+                </div>
+            </div>
+
+            <!-- WHAT, WHERE, WHEN, WHO GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- WHERE: CATEGORY BREAKDOWN -->
+                <div class="lg:col-span-2 glass p-4 rounded-xl space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center justify-between">
+                        <span><i class="fa-solid fa-list-check text-indigo-400 mr-1.5"></i> Category / Segment Variance Contribution</span>
+                        <span class="text-[10px] text-gray-400" id="exp-cat-subtitle">Ranked by Negative Impact</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-gray-300">
+                            <thead class="bg-gray-900/80 text-[10px] text-gray-400 uppercase border-b border-gray-800">
+                                <tr>
+                                    <th class="py-2 px-3">Segment Name</th>
+                                    <th class="py-2 px-3">Current</th>
+                                    <th class="py-2 px-3">Previous</th>
+                                    <th class="py-2 px-3">Variance</th>
+                                    <th class="py-2 px-3">Share</th>
+                                    <th class="py-2 px-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="exp-cat-table-body" class="divide-y divide-gray-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- WHEN: 7-DAY TREND TIMELINE -->
+                <div class="glass p-4 rounded-xl space-y-3 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center justify-between">
+                            <span><i class="fa-solid fa-chart-line text-indigo-400 mr-1.5"></i> Trend Timeline</span>
+                            <span class="text-[10px] text-red-400 font-mono">Actual vs Baseline</span>
+                        </h3>
+                        <p class="text-[11px] text-gray-400 mt-1">Variance deviation across period timeline.</p>
+                        <div class="mt-4 space-y-2 text-xs" id="exp-trend-bars"></div>
+                    </div>
+                    <div class="p-2.5 bg-gray-950/60 rounded-lg border border-gray-800 text-[11px] text-gray-300" id="exp-trend-note">
+                        <i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i>
+                        Reconciled through Canonical Semantic Contract.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================= -->
+        <!-- SECTION ③: ROOT-CAUSE / DRIVER ANALYSIS                   -->
+        <!-- ========================================================= -->
+        <section id="sec-drivers" class="space-y-4 hidden">
+            <div class="glass p-5 rounded-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <div>
+                        <h2 class="text-sm font-black text-white flex items-center">
+                            <i class="fa-solid fa-code-fork text-indigo-400 mr-2"></i>
+                            Why did Metrics Change? Multi-Factor Driver Decomposition
+                        </h2>
+                        <p class="text-xs text-gray-400" id="drivers-subtitle">Exact mathematical attribution separating volume, mix, and friction</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-gray-400">Total Net Exposure</span>
+                        <div class="text-base font-black text-red-400" id="drivers-total-exposure">-$27,801 USD (↓ 8.4%)</div>
+                    </div>
+                </div>
+
+                <!-- DRIVER CONTRIBUTION BARS -->
+                <div class="space-y-3.5" id="drivers-bars-container"></div>
+            </div>
+
+            <!-- THE 3-AGENT AI COURTROOM (TRIBUNAL) -->
+            <div class="glass p-5 rounded-2xl border border-indigo-800/40 space-y-3.5">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-2.5">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center font-bold text-xs">
+                            <i class="fa-solid fa-gavel"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-extrabold text-white">The AI Courtroom: Multi-Agent Evidence Cross-Examination</h3>
+                            <p class="text-[10px] text-gray-400">3 Specialized Agents analyzing internal logs, outside promotions, and database integrity</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                        <i class="fa-solid fa-shield-check text-[10px] mr-1"></i> Burden of Proof: 94% Proven
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="tribunal-cards-grid"></div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================= -->
+        <!-- SECTION ④: EVIDENCE & LINEAGE PANEL                       -->
+        <!-- ========================================================= -->
+        <section id="sec-evidence" class="space-y-4 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- DATA FRESHNESS MATRIX -->
+                <div class="glass p-4 rounded-xl space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center justify-between">
+                        <span><i class="fa-solid fa-clock-rotate-left text-indigo-400 mr-1.5"></i> Heterogeneous Source Freshness</span>
+                        <span class="text-[10px] text-emerald-400 font-semibold">All Sources Reconciled</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-gray-300">
+                            <thead class="bg-gray-900/80 text-[10px] text-gray-400 uppercase border-b border-gray-800">
+                                <tr>
+                                    <th class="py-2 px-3">Source Dataset</th>
+                                    <th class="py-2 px-3">Cadence</th>
+                                    <th class="py-2 px-3">Status</th>
+                                    <th class="py-2 px-3">Records</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evidence-freshness-body" class="divide-y divide-gray-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- LINEAGE DAG -->
+                <div class="glass p-4 rounded-xl space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center justify-between">
+                        <span><i class="fa-solid fa-sitemap text-indigo-400 mr-1.5"></i> End-to-End Data Lineage Chain</span>
+                        <span class="text-[10px] text-gray-400 font-mono" id="evidence-lineage-badge">100% Traceable</span>
+                    </h3>
+                    <div class="space-y-2 text-xs" id="evidence-lineage-dag"></div>
+                </div>
+            </div>
+
+            <!-- "SHOW CALCULATION" MATHEMATICAL PROOF ACCORDION -->
+            <div class="glass p-4 rounded-xl border border-gray-800 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-white flex items-center">
+                        <i class="fa-solid fa-calculator text-indigo-400 mr-1.5"></i>
+                        Mathematical Proof & Raw Formula Calculation
+                    </span>
+                    <span class="text-[10px] font-mono bg-gray-900 text-gray-400 px-2 py-0.5 rounded border border-gray-700">Deterministic Arithmetic</span>
+                </div>
+                <div class="bg-gray-950 p-3.5 rounded-lg border border-gray-800 font-mono text-[11px] text-emerald-400 space-y-1" id="evidence-calc-proof"></div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================= -->
+        <!-- SECTION ⑤: ACTION CENTER                                  -->
+        <!-- ========================================================= -->
+        <section id="sec-actions" class="space-y-4 hidden">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-bolt text-yellow-400"></i>
+                        <span>Prescriptive Decisioning: Driver → Lever → Action → Expected Impact → Monitoring</span>
+                    </h2>
+                    <span class="text-[11px] text-emerald-400 font-semibold">Closed-Loop Realization Tracker Active</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="playbooks-container"></div>
+            </div>
+
+            <!-- 7-DAY REALIZATION SCORECARD -->
+            <div class="glass p-4 rounded-xl border border-gray-800 space-y-3">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                    <h3 class="text-xs font-bold text-white flex items-center">
+                        <i class="fa-solid fa-bullseye text-emerald-400 mr-1.5"></i>
+                        Historical Action Realization Scorecard (Continuous Learning)
+                    </h3>
+                    <span class="text-xs font-mono text-emerald-400">Overall Realization Rate: <strong>94.1%</strong></span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-gray-300">
+                        <thead class="bg-gray-900/80 text-[10px] text-gray-400 uppercase border-b border-gray-800">
+                            <tr>
+                                <th class="py-2 px-3">Action ID</th>
+                                <th class="py-2 px-3">Playbook Name</th>
+                                <th class="py-2 px-3">Projected Recovery</th>
+                                <th class="py-2 px-3">Realized (7-Day)</th>
+                                <th class="py-2 px-3">Accuracy</th>
+                                <th class="py-2 px-3">Trust Level</th>
+                            </tr>
+                        </thead>
+                        <tbody id="actions-scorecard-body" class="divide-y divide-gray-800/60"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================= -->
+        <!-- SECTION ⑥: ASK THE ENGINE (INTENT Q&A)                     -->
+        <!-- ========================================================= -->
+        <section id="sec-chat" class="space-y-4 hidden">
+            <div class="glass p-5 rounded-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-brain-circuit text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold text-white">Ask the Engine: Natural Language Business Q&A</h2>
+                            <p class="text-xs text-gray-400">Ask any question in plain English — zero SQL knowledge required</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800">Deterministic Intent Routing</span>
+                </div>
+
+                <!-- SAMPLE QUESTION CHIPS -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="askQuestion('Why did revenue fall this week?')" class="px-2.5 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 transition">
+                        💬 "Why did revenue fall this week?"
+                    </button>
+                    <button onclick="askQuestion('Which category is responsible?')" class="px-2.5 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 transition">
+                        💬 "Which category is responsible?"
+                    </button>
+                    <button onclick="askQuestion('Is this a temporary anomaly?')" class="px-2.5 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 transition">
+                        💬 "Is this a temporary anomaly?"
+                    </button>
+                    <button onclick="askQuestion('What should the operations team do?')" class="px-2.5 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 transition">
+                        💬 "What should the operations team do?"
+                    </button>
+                </div>
+
+                <!-- CHAT LOG -->
+                <div id="chat-conversation" class="bg-gray-950 p-4 rounded-xl border border-gray-800 min-h-[160px] space-y-3 text-xs">
+                    <div class="flex items-start space-x-2">
+                        <span class="w-5 h-5 rounded bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">V</span>
+                        <div class="bg-gray-900 p-2.5 rounded-lg border border-gray-800 text-gray-300 leading-relaxed" id="chat-welcome-msg">
+                            Hello! I am VERITAS. You can ask me anything about active dataset metrics, delivery delays, category breakdowns, or prescriptive actions.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INPUT BAR -->
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="chat-input" placeholder="Type a business question (e.g. 'Why did revenue decline?')..." onkeydown="if(event.key==='Enter') sendChat()" class="w-full bg-gray-900 text-white text-xs p-2.5 rounded-lg border border-gray-700 outline-none focus:border-indigo-500">
+                    <button onclick="sendChat()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition flex items-center space-x-1">
+                        <span>Ask</span>
+                        <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================================= -->
+        <!-- SECTION ⑦: FEEDBACK & CONTINUOUS LEARNING                 -->
+        <!-- ========================================================= -->
+        <section id="sec-feedback" class="space-y-4 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- FEEDBACK CAPTURE FORM -->
+                <div class="glass p-5 rounded-2xl space-y-3.5">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center justify-between">
+                        <span><i class="fa-solid fa-comment-dots text-emerald-400 mr-1.5"></i> Analyst Feedback & Correction Capture</span>
+                        <span class="text-[10px] text-gray-400">Insight: INS-8401</span>
+                    </h3>
+
+                    <p class="text-xs text-gray-400">Provide expert feedback to calibrate driver ranking weights and prompt templates in the evaluation dataset.</p>
+
+                    <div class="space-y-2.5 text-xs">
+                        <div>
+                            <label class="block text-gray-400 font-semibold mb-1">Was the insight accurate?</label>
+                            <div class="flex space-x-2">
+                                <button onclick="selectRating('up')" id="fb-btn-up" class="px-3 py-1.5 bg-emerald-600 text-white rounded border border-emerald-500 flex items-center space-x-1">
+                                    <span>👍 Correct</span>
+                                </button>
+                                <button onclick="selectRating('down')" id="fb-btn-down" class="px-3 py-1.5 bg-gray-800 text-gray-400 rounded border border-gray-700 flex items-center space-x-1">
+                                    <span>👎 Incorrect</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 font-semibold mb-1">Correct Primary Driver:</label>
+                            <select id="fb-driver-select" class="w-full bg-gray-800 text-white p-2 rounded border border-gray-700">
+                                <option value="Order Volume">Order Volume Contraction</option>
+                                <option value="Product Mix">Product Mix Shift</option>
+                                <option value="Promotions Ending">Promotions / Campaign Cessation</option>
+                                <option value="Payment Failure">Payment Gateway Failures</option>
+                                <option value="Logistics Delays">Carrier Logistics Delays</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 font-semibold mb-1">Analyst Notes / Context:</label>
+                            <textarea id="fb-comment" rows="3" class="w-full bg-gray-950 text-gray-200 p-2.5 rounded-lg border border-gray-700 text-xs" placeholder="e.g. Confirmed promo ended on Jan 28, which explains the elasticity dip."></textarea>
+                        </div>
+
+                        <button onclick="submitFeedbackForm()" class="w-full py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-lg text-xs shadow-lg transition">
+                            Submit Feedback to Learning Dataset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LIVE EVALUATION DATASET HISTORY -->
+                <div class="glass p-5 rounded-2xl space-y-3 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center justify-between">
+                            <span><i class="fa-solid fa-database text-indigo-400 mr-1.5"></i> Persistent Evaluation Dataset</span>
+                            <span class="text-[10px] text-emerald-400 font-mono" id="eval-count-badge">1 Logged Record</span>
+                        </h3>
+                        <p class="text-[11px] text-gray-400 mt-1">Every submission updates our driver evaluation dataset for continuous tuning.</p>
+                        
+                        <div class="mt-3 space-y-2 text-xs overflow-y-auto max-h-[220px]" id="eval-history-list"></div>
+                    </div>
+
+                    <div class="p-2.5 bg-emerald-950/40 rounded-lg border border-emerald-800/40 text-[11px] text-emerald-300">
+                        <i class="fa-solid fa-check mr-1"></i>
+                        Driver Ranking Accuracy improved from 86.2% to <strong>91.4%</strong> following analyst feedback loops.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- PERSISTENT RUNTIME TELEMETRY FOOTER -->
+    <footer class="glass border-t border-gray-800 px-6 py-2.5 flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center space-x-5">
+            <span class="flex items-center"><i class="fa-solid fa-microchip text-indigo-400 mr-1.5"></i> <strong class="text-gray-200">Gemini 1.5 Flash (Deterministic RAG)</strong></span>
+            <span class="flex items-center"><i class="fa-solid fa-stopwatch text-indigo-400 mr-1.5"></i> Latency: <strong class="text-white" id="tel-latency">584 ms</strong></span>
+            <span class="flex items-center"><i class="fa-solid fa-coins text-yellow-400 mr-1.5"></i> Tokens: <strong class="text-white" id="tel-tokens">525 tokens</strong></span>
+            <span class="flex items-center"><i class="fa-solid fa-dollar-sign text-emerald-400 mr-1.5"></i> Cost: <strong class="text-emerald-400 font-mono" id="tel-cost">$0.000158 USD</strong></span>
+        </div>
+
+        <button onclick="openLLMBreakdownModal()" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded border border-gray-700 text-xs flex items-center space-x-1 transition">
+            <i class="fa-solid fa-layer-group text-indigo-400"></i>
+            <span>View LLM vs Non-LLM Architecture</span>
+        </button>
+    </footer>
+
+    <!-- ========================================================= -->
+    <!-- MODALS                                                    -->
+    <!-- ========================================================= -->
+
+    <!-- 1. UNIVERSAL MULTI-FILE & MULTI-TABLE UPLOAD MODAL -->
+    <div id="modal-upload" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-emerald-500/50 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-600/30 text-emerald-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Upload E-Commerce Data (Multi-File / Multi-Table Support)</h3>
+                        <p class="text-[11px] text-gray-400">Upload 1 to 10 CSV tables (orders, items, products, context) or paste raw text</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-upload')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- UPLOAD MODE TABS -->
+            <div class="flex border-b border-gray-800 text-xs space-x-4">
+                <button onclick="setUploadTab('files')" id="tab-up-files" class="pb-2 font-bold text-emerald-400 border-b-2 border-emerald-500">
+                    <i class="fa-solid fa-files mr-1"></i> Multi-File Batch Upload
+                </button>
+                <button onclick="setUploadTab('samples')" id="tab-up-samples" class="pb-2 text-gray-400 hover:text-gray-200">
+                    <i class="fa-solid fa-bolt mr-1"></i> 1-Click Quick Samples
+                </button>
+                <button onclick="setUploadTab('paste')" id="tab-up-paste" class="pb-2 text-gray-400 hover:text-gray-200">
+                    <i class="fa-solid fa-code mr-1"></i> Direct Paste CSV
+                </button>
+            </div>
+
+            <!-- TAB 1: MULTI-FILE UPLOAD ZONE -->
+            <div id="view-up-files" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-1">Dataset / Company Name:</label>
+                    <input type="text" id="upload-batch-name" value="Custom E-Commerce Store" class="w-full bg-gray-800 text-white rounded p-2 border border-gray-700 text-xs outline-none">
+                </div>
+
+                <!-- DRAG & DROP FILE ZONE -->
+                <div id="dropzone" onclick="document.getElementById('file-input-multi').click()" class="border-2 border-dashed border-gray-700 hover:border-emerald-500 rounded-xl p-5 text-center cursor-pointer transition bg-gray-950/60 space-y-2">
+                    <input type="file" id="file-input-multi" multiple accept=".csv,.tsv,.txt,.json" onchange="handleMultipleFiles(event)" class="hidden">
+                    <div class="w-10 h-10 rounded-full bg-emerald-950 text-emerald-400 flex items-center justify-center mx-auto text-lg border border-emerald-800">
+                        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                    </div>
+                    <div class="text-xs text-white font-semibold">Click to browse or Drag & Drop Multiple CSV Files here</div>
+                    <div class="text-[10px] text-gray-400">Supports selecting multiple tables at once: <code>orders.csv</code>, <code>order_items.csv</code>, <code>products.csv</code>, etc.</div>
+                </div>
+
+                <!-- STAGED FILES QUEUE -->
+                <div class="space-y-1.5" id="staged-files-container">
+                    <div class="flex justify-between items-center text-[10px] uppercase font-bold text-gray-400">
+                        <span>Selected Files Queue (<span id="staged-count">0</span> files):</span>
+                        <button onclick="clearStagedFiles()" class="text-red-400 hover:text-red-300 font-semibold lowercase">clear all</button>
+                    </div>
+                    <div id="staged-files-list" class="max-h-[140px] overflow-y-auto space-y-1.5 text-xs">
+                        <div class="text-gray-500 italic text-[11px] p-2 bg-gray-950/40 rounded border border-gray-800 text-center">No files selected yet. Drag & drop or select files above.</div>
+                    </div>
+                </div>
+
+                <div class="p-2.5 bg-emerald-950/30 rounded-lg border border-emerald-800/40 text-gray-300 text-[11px]">
+                    <i class="fa-solid fa-circle-nodes mr-1 text-emerald-400"></i>
+                    <strong>Automated Multi-Table Join:</strong> Tables with matching keys (<code>order_id</code>, <code>product_id</code>) are automatically reconciled in memory.
+                </div>
+            </div>
+
+            <!-- TAB 2: 1-CLICK SAMPLES -->
+            <div id="view-up-samples" class="space-y-3 text-xs hidden">
+                <div class="grid grid-cols-3 gap-2.5">
+                    <button onclick="loadSampleData('fashion')" class="p-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl text-left transition space-y-1">
+                        <div class="font-bold text-white text-xs">👗 FashionHub Store</div>
+                        <div class="text-[10px] text-gray-400">Apparel GMV & Footwear categories with SP/RJ customer splits.</div>
+                        <span class="inline-block px-1.5 py-0.5 bg-indigo-950 text-indigo-300 text-[9px] rounded font-mono">1 Table • Fast Load</span>
+                    </button>
+                    <button onclick="loadSampleData('aviation')" class="p-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl text-left transition space-y-1">
+                        <div class="font-bold text-white text-xs">✈️ Airline Live Ops</div>
+                        <div class="text-[10px] text-gray-400">Transatlantic & regional ticket revenue with baggage status.</div>
+                        <span class="inline-block px-1.5 py-0.5 bg-indigo-950 text-indigo-300 text-[9px] rounded font-mono">1 Table • Fast Load</span>
+                    </button>
+                    <button onclick="loadSampleData('multi_sample')" class="p-3 bg-gray-800 hover:bg-gray-700 border border-emerald-600/50 rounded-xl text-left transition space-y-1 bg-emerald-950/20">
+                        <div class="font-bold text-emerald-300 text-xs">📦 Multi-Table Bundle</div>
+                        <div class="text-[10px] text-gray-400">3 Separate Tables: Orders + Order Items + Products Catalog.</div>
+                        <span class="inline-block px-1.5 py-0.5 bg-emerald-950 text-emerald-300 text-[9px] rounded font-mono">3 Tables • Multi-Join</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 3: DIRECT PASTE -->
+            <div id="view-up-paste" class="space-y-3 text-xs hidden">
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-1">Dataset Name:</label>
+                    <input type="text" id="upload-paste-name" value="Pasted CSV Dataset" class="w-full bg-gray-800 text-white rounded p-2 border border-gray-700 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="block text-gray-300 font-semibold mb-1">Paste Raw CSV / TSV Rows:</label>
+                    <textarea id="upload-paste-content" rows="5" class="w-full bg-gray-950 font-mono text-[11px] text-emerald-400 p-2.5 rounded-lg border border-gray-700 outline-none" placeholder="order_id,purchase_date,gmv,category,customer_state&#10;ORD-101,2026-08-20,185.00,Luxury Handbags,SP&#10;ORD-102,2026-08-21,94.50,Designer Footwear,RJ&#10;ORD-103,2026-08-21,45.00,Casual Apparel,MG&#10;ORD-104,2026-08-22,210.00,Luxury Handbags,SP"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-gray-800">
+                <span class="text-[11px] text-gray-400" id="upload-status-indicator">Ready to ingest.</span>
+                <div class="flex space-x-2">
+                    <button onclick="closeModal('modal-upload')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-xs">Cancel</button>
+                    <button onclick="executeMultiFileUpload()" id="btn-submit-upload" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs shadow-lg transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>⚡ Ingest & Recalculate Dashboard</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. SCENARIO B: STALE DATA & ABSTENTION MODAL (INTERACTIVE) -->
+    <div id="modal-abstention" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-amber-500/50 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2.5">
+                <div class="flex items-center space-x-2">
+                    <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+                        ⚠️
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Scenario 2: Contradictory Telemetry & Active Abstention</h3>
+                        <p class="text-[11px] text-gray-400" id="abst-ds-name">Dataset: Olist Reference</p>
+                    </div>
+                </div>
+                <span class="text-[9px] font-mono bg-amber-950 text-amber-400 px-2 py-0.5 rounded border border-amber-800" id="abst-status-badge">STATUS: ABSTAINED (41% Conf)</span>
+            </div>
+
+            <div class="text-xs text-gray-300 bg-gray-950 p-3.5 rounded-xl border border-gray-800 space-y-2 leading-relaxed">
+                <p><strong>Uncertainty Diagnostic:</strong> <span id="abst-reason-text">Marketing campaign attribution table is 14 days stale. Payment gateway timeout logs are incomplete.</span></p>
+                <p class="text-amber-300 font-semibold" id="abst-prompt-text">⚠️ Clarification Poll: What caused the primary volume contraction?</p>
+            </div>
+
+            <!-- DYNAMIC OPTIONS CONTAINER -->
+            <div class="space-y-2 text-xs" id="abst-options-container">
+                <!-- Dynamically rendered via JS -->
+            </div>
+
+            <!-- DIAGNOSTIC RESOLUTION RESULT CARD -->
+            <div id="abst-result-card" class="hidden bg-gray-950 p-3.5 rounded-xl border border-emerald-500/50 space-y-2 text-xs">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-emerald-400" id="abst-res-status">RESOLVED</span>
+                    <span class="font-mono text-emerald-300 text-[10px] bg-emerald-950 px-2 py-0.5 rounded" id="abst-res-conf">94.6% Conf</span>
+                </div>
+                <p class="text-gray-300 text-[11px]" id="abst-res-cause"></p>
+                <div class="text-[10px] text-yellow-400 font-semibold border-t border-gray-800 pt-1.5" id="abst-res-action"></div>
+            </div>
+
+            <div class="flex justify-end pt-1">
+                <button onclick="closeModal('modal-abstention')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SCENARIO C: SPARSE HISTORY & COHORT BENCHMARK (INTERACTIVE SANDBOX) -->
+    <div id="modal-cold-start" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-purple-500/50 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2.5">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-purple-600/30 text-purple-300 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Scenario 3: Sparse History & New Product Launch Simulation Sandbox</h3>
+                        <p class="text-[11px] text-gray-400" id="cold-ds-entity">Testing New SKU Launch under Sparse Historical Observations</p>
+                    </div>
+                </div>
+                <span class="text-[9px] font-mono bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800" id="cold-status-badge">SANDBOX ACTIVE</span>
+            </div>
+
+            <!-- INTERACTIVE SLIDER -->
+            <div class="glass p-4 rounded-xl space-y-2 border border-purple-800/40">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-gray-300 font-bold">Historical Observation Window:</span>
+                    <span class="font-mono text-purple-300 font-bold bg-purple-950 px-2 py-0.5 rounded border border-purple-800 text-xs" id="cold-days-label">4 Days of History</span>
+                </div>
+                <input type="range" id="cold-slider" min="1" max="60" value="4" oninput="updateSparseHistory(this.value)" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                <div class="flex justify-between text-[10px] text-gray-500 font-mono">
+                    <span>1 Day (Sparse)</span>
+                    <span>7 Days</span>
+                    <span>14 Days (Threshold)</span>
+                    <span>30 Days</span>
+                    <span>60 Days (Mature)</span>
+                </div>
+            </div>
+
+            <!-- LIVE MODEL DECISION READOUT -->
+            <div class="text-xs text-gray-300 bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2.5 leading-relaxed" id="cold-decision-box">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-white">Anomaly Detection Model Selected:</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800" id="cold-model-name">Category Peer Cohort Proxy Benchmark</span>
+                </div>
+                <div class="p-2.5 bg-gray-900 rounded border border-gray-800 text-[11px] space-y-1">
+                    <div><strong class="text-gray-400">ARIMA Low-Volume Alarm:</strong> <span class="text-emerald-400 font-bold" id="cold-alarm-state">SUPPRESSED (Prevented Spurious False Panic)</span></div>
+                    <div><strong class="text-gray-400">Launch Trajectory:</strong> <span class="text-indigo-300 font-semibold" id="cold-traj-state">+14.2% healthy ramp vs category cohort average</span></div>
+                </div>
+                <p class="text-[11px] text-gray-400 italic" id="cold-verdict-desc">Because this entity has fewer than 7 days of history, traditional 90-day ARIMA time-series models would falsely declare an anomaly. VERITAS suppresses the false alert and benchmarks against category launch curves.</p>
+            </div>
+
+            <div class="flex justify-end pt-1">
+                <button onclick="closeModal('modal-cold-start')" class="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg text-xs">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. LLM BREAKDOWN MODAL -->
+    <div id="modal-llm-breakdown" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-indigo-600/50 rounded-2xl max-w-xl w-full p-5 space-y-3 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <h3 class="text-sm font-bold text-white flex items-center">
+                    <i class="fa-solid fa-diagram-project text-indigo-400 mr-1.5"></i> Computational Architecture: LLM vs. Non-LLM
+                </h3>
+                <button onclick="closeModal('modal-llm-breakdown')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <table class="w-full text-left text-xs text-gray-300 border border-gray-800">
+                <thead class="bg-gray-950 text-gray-400 uppercase text-[9px]">
+                    <tr><th class="p-2">Analytical Stage</th><th class="p-2">Method</th><th class="p-2">Type</th><th class="p-2">Compute Share</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                    <tr><td class="p-2 font-semibold">1. KPI Calculations</td><td class="p-2 text-gray-400">Deterministic SQL & PVM Formulas</td><td class="p-2 text-blue-400">Non-LLM</td><td class="p-2">15%</td></tr>
+                    <tr><td class="p-2 font-semibold">2. Materiality & Anomaly</td><td class="p-2 text-gray-400">Bayesian Dynamic Envelopes (z-scores)</td><td class="p-2 text-blue-400">Non-LLM</td><td class="p-2">12%</td></tr>
+                    <tr><td class="p-2 font-semibold">3. Multi-Factor Driver ML</td><td class="p-2 text-gray-400">Shapley & Contribution Variance</td><td class="p-2 text-purple-400">Non-LLM ML</td><td class="p-2">25%</td></tr>
+                    <tr><td class="p-2 font-semibold">4. Confidence & Abstention</td><td class="p-2 text-gray-400">Shannon Entropy & Freshness Matrix</td><td class="p-2 text-blue-400">Non-LLM</td><td class="p-2">10%</td></tr>
+                    <tr><td class="p-2 font-semibold">5. Intent Routing</td><td class="p-2 text-gray-400">Structured Intent Classification</td><td class="p-2 text-emerald-400">LLM</td><td class="p-2">18%</td></tr>
+                    <tr><td class="p-2 font-semibold">6. Persona Narrative</td><td class="p-2 text-gray-400">Role-Tailored Natural Language</td><td class="p-2 text-emerald-400">LLM</td><td class="p-2">20%</td></tr>
+                </tbody>
+            </table>
+            <div class="flex justify-end"><button onclick="closeModal('modal-llm-breakdown')" class="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-semibold">Close</button></div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast-banner" class="fixed bottom-6 right-6 z-50 hidden bg-emerald-950 border border-emerald-500/80 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <div>
+            <h4 class="font-bold text-xs" id="toast-title">Notification Title</h4>
+            <p class="text-[11px] text-gray-300" id="toast-desc">Notification Details</p>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- JAVASCRIPT APPLICATION LOGIC                              -->
+    <!-- ========================================================= -->
+    <script>
+        let currentPersona = 'business_manager';
+        let currentTab = 'overview';
+        let currentRating = 'up';
+        let stagedFiles = []; // Array of { filename: string, content: string, size: string }
+        let currentUploadMode = 'files';
+
+        // 1. INITIALIZATION & DATA FETCHING
+        async function initApp() {
+            await fetchOverviewData();
+            await fetchExplorerData('revenue', 'category');
+            await fetchDriverData();
+            await fetchEvidenceData();
+            await fetchActionsData();
+            await fetchFeedbackData();
+            await fetchTelemetryData();
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            const tabs = ['overview', 'explorer', 'drivers', 'evidence', 'actions', 'chat', 'feedback'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const sec = document.getElementById(`sec-${t}`);
+                if (btn) btn.className = (t === tabId) ? 'tab-btn active py-3 flex items-center space-x-1.5 transition text-indigo-400 font-bold' : 'tab-btn py-3 flex items-center space-x-1.5 transition text-gray-400';
+                if (sec) sec.className = (t === tabId) ? 'space-y-4' : 'space-y-4 hidden';
+            });
+        }
+
+        async function setPersona(persona) {
+            currentPersona = persona;
+            const isMgr = (persona === 'business_manager');
+
+            document.getElementById('btn-role-mgr').className = isMgr ? 'px-2.5 py-1 rounded font-bold transition bg-indigo-600 text-white text-[11px] flex items-center space-x-1 shadow' : 'px-2.5 py-1 rounded font-medium transition text-gray-300 hover:text-white text-[11px] flex items-center space-x-1';
+            document.getElementById('btn-role-ana').className = !isMgr ? 'px-2.5 py-1 rounded font-bold transition bg-indigo-600 text-white text-[11px] flex items-center space-x-1 shadow' : 'px-2.5 py-1 rounded font-medium transition text-gray-300 hover:text-white text-[11px] flex items-center space-x-1';
+            
+            // Header briefing bar
+            const briefingBar = document.getElementById('persona-briefing-bar');
+            const bannerText = document.getElementById('persona-banner-text');
+            const accessTag = document.getElementById('persona-access-tag');
+
+            if (isMgr) {
+                briefingBar.className = 'bg-indigo-950/70 border-b border-indigo-800/40 px-6 py-1.5 flex items-center justify-between text-xs';
+                bannerText.innerHTML = 'Active Mode: <strong>👔 Business Manager</strong> — Strategic executive summaries, P&L exposure, and 1-click action approvals.';
+                accessTag.className = 'text-[10px] font-mono bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700';
+                accessTag.innerText = 'STRATEGIC_FINANCIAL_CLEARANCE';
+                showToast("Switched to Manager Mode", "Showing bottom-line financial impact, commercial margins, and 1-click action approvals.");
+            } else {
+                briefingBar.className = 'bg-emerald-950/70 border-b border-emerald-800/40 px-6 py-1.5 flex items-center justify-between text-xs';
+                bannerText.innerHTML = 'Active Mode: <strong>📊 Data Analyst</strong> — Deep statistical lineage (z-score, p-value), full SQL DAG, and raw mathematical proofs.';
+                accessTag.className = 'text-[10px] font-mono bg-emerald-900 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700';
+                accessTag.innerText = 'FULL_SQL_LINEAGE_AND_CODE_CLEARANCE';
+                showToast("Switched to Analyst Mode", "Showing exact z-scores, Shapley shares, SQL table lineage DAGs, and raw formulas.");
+            }
+
+            // Immediately refetch all components
+            await fetchOverviewData();
+            await fetchExplorerData('revenue', 'category');
+            await fetchDriverData();
+            await fetchEvidenceData();
+            await fetchActionsData();
+        }
+
+        // 2. FETCH & RENDER SECTION ①: OVERVIEW
+        async function fetchOverviewData() {
+            try {
+                const res = await fetch(`/api/overview?persona=${currentPersona}`);
+                const data = await res.json();
+
+                // Active dataset badge
+                document.getElementById('active-dataset-badge').innerHTML = `<i class="fa-solid fa-database text-[10px] mr-1"></i>${data.dataset_name}`;
+                const resetBtn = document.getElementById('btn-reset-dataset');
+                if (data.is_custom) {
+                    resetBtn.classList.remove('hidden');
+                } else {
+                    resetBtn.classList.add('hidden');
+                }
+
+                const grid = document.getElementById('overview-kpi-grid');
+                grid.innerHTML = data.kpis.map(k => `
+                    <div class="glass p-3.5 rounded-xl border ${k.delta_raw < -5 ? 'border-red-500/30 glow-red' : (k.delta_raw < 0 ? 'border-amber-500/30' : 'border-emerald-500/30')}">
+                        <div class="flex justify-between items-start">
+                            <span class="text-xs font-semibold text-gray-400">${k.name}</span>
+                            <span class="px-1.5 py-0.5 text-[9px] font-bold rounded ${k.priority === 'CRITICAL' ? 'bg-red-950 text-red-400 border border-red-800 animate-pulse' : (k.priority === 'WARNING' ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800')}">${k.badge}</span>
+                        </div>
+                        <div class="mt-1.5 flex items-baseline justify-between">
+                            <span class="text-xl font-black ${k.delta_raw < -5 ? 'text-red-400' : 'text-white'}">${k.current_val}</span>
+                            <span class="text-xs font-bold ${k.delta_raw < 0 ? 'text-red-400' : 'text-emerald-400'}">${k.delta}</span>
+                        </div>
+                        <div class="mt-0.5 text-[10px] text-gray-500 flex justify-between">
+                            <span>Prev: ${k.prev_val}</span>
+                            <span>${k.last_updated}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('hero-insight-title').innerText = data.top_insight.title;
+                document.getElementById('hero-action-text').innerText = data.top_insight.recommended_action;
+                document.getElementById('hero-conf-badge').innerHTML = `<i class="fa-solid fa-certificate text-[10px] mr-1"></i> Confidence: ${data.top_insight.confidence_score}`;
+                document.getElementById('hero-insight-sub').innerText = `Financial Impact: ${data.top_insight.financial_exposure} • Mode: ${data.top_insight.persona_mode}`;
+
+                // Dynamic Top Driver Chips in Overview
+                if (data.top_insight.driver_chips) {
+                    const chipsContainer = document.getElementById('hero-driver-chips');
+                    chipsContainer.innerHTML = data.top_insight.driver_chips.map(ch => `
+                        <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+                            <div class="text-[10px] uppercase font-bold ${ch.color === 'indigo' ? 'text-indigo-400' : (ch.color === 'purple' ? 'text-purple-400' : 'text-amber-400')}">${ch.label || 'Driver'}</div>
+                            <div class="text-xs font-semibold text-white mt-0.5">${ch.title}</div>
+                            <div class="text-[11px] text-gray-400 mt-0.5">${ch.desc}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error("Error in fetchOverviewData:", err);
+            }
+        }
+
+        // 3. FETCH & RENDER SECTION ②: KPI EXPLORER
+        async function fetchExplorerData(kpi, dimension) {
+            try {
+                const res = await fetch(`/api/explorer?kpi=${kpi}&dimension=${dimension}&persona=${currentPersona}`);
+                const data = await res.json();
+
+                document.getElementById('exp-total-val').innerHTML = `${data.total_val_formatted || '$303,165 USD'} <span class="text-xs text-red-400 font-bold" id="exp-delta-val">${data.delta_formatted || '↓ 8.4%'}</span>`;
+
+                const tbody = document.getElementById('exp-cat-table-body');
+                tbody.innerHTML = data.category_breakdown.map(c => `
+                    <tr class="hover:bg-gray-900/50 transition">
+                        <td class="py-2 px-3 font-semibold text-white">${c.name}</td>
+                        <td class="py-2 px-3 font-mono">${c.current}</td>
+                        <td class="py-2 px-3 font-mono text-gray-400">${c.prev}</td>
+                        <td class="py-2 px-3 font-bold ${c.delta.startsWith('-') ? 'text-red-400' : 'text-emerald-400'}">${c.delta}</td>
+                        <td class="py-2 px-3 text-gray-400">${c.share}</td>
+                        <td class="py-2 px-3"><span class="px-1.5 py-0.5 text-[9px] font-bold rounded ${c.status === 'SEVERE' ? 'bg-red-950 text-red-400 border border-red-800' : (c.status === 'WARNING' ? 'bg-amber-950 text-amber-400' : 'bg-emerald-950 text-emerald-400')}">${c.status}</span></td>
+                    </tr>
+                `).join('');
+
+                const bars = document.getElementById('exp-trend-bars');
+                bars.innerHTML = data.trend_timeline.map(t => `
+                    <div>
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-0.5">
+                            <span>${t.day}</span>
+                            <span>$${t.revenue.toLocaleString()} (Base: $${t.baseline.toLocaleString()})</span>
+                        </div>
+                        <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden flex">
+                            <div style="width: ${Math.min(100, (t.revenue / (t.baseline*1.1 || 50000)) * 100)}%" class="bg-indigo-500 h-full rounded-full"></div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Error in fetchExplorerData:", err);
+            }
+        }
+
+        function updateExplorer() {
+            const kpi = document.getElementById('exp-kpi-select').value;
+            const dim = document.getElementById('exp-dim-select').value;
+            fetchExplorerData(kpi, dim);
+        }
+
+        // 4. FETCH & RENDER SECTION ③: DRIVERS & AI TRIBUNAL
+        async function fetchDriverData() {
+            try {
+                const res = await fetch(`/api/drivers?persona=${currentPersona}`);
+                const data = await res.json();
+
+                document.getElementById('drivers-total-exposure').innerText = `${data.total_revenue_drop_usd} (${data.total_revenue_drop_pct})`;
+                document.getElementById('drivers-subtitle').innerText = `Dataset: ${data.dataset_name} • Reconciled via Canonical Semantic Layer`;
+
+                const container = document.getElementById('drivers-bars-container');
+                container.innerHTML = data.contributing_drivers.map(d => `
+                    <div class="bg-gray-900/80 p-3.5 rounded-xl border border-gray-800 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-white flex items-center">
+                                <span class="w-2 h-2 rounded-full bg-indigo-400 mr-2"></span>
+                                ${d.name}
+                            </span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-mono text-red-400 font-bold">${d.variance_usd}</span>
+                                <span class="font-mono text-indigo-300 font-extrabold bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">${d.contribution_pct}%</span>
+                            </div>
+                        </div>
+                        <div class="w-full h-2.5 bg-gray-800 rounded-full overflow-hidden">
+                            <div style="width: ${d.contribution_pct}%" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-gray-400 pt-0.5">
+                            <span>Method: <strong class="text-indigo-300 font-mono">${d.method}</strong></span>
+                            <span>Largest affected: <strong class="text-gray-300">${d.largest_affected}</strong></span>
+                        </div>
+                    </div>
+                `).join('');
+
+                const tribunalGrid = document.getElementById('tribunal-cards-grid');
+                tribunalGrid.innerHTML = data.ai_tribunal.map(a => `
+                    <div class="bg-gray-900/90 rounded-xl p-3.5 border border-indigo-900/40 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-indigo-300 flex items-center">
+                                <i class="fa-solid fa-robot mr-1 text-indigo-400"></i> ${a.agent}
+                            </span>
+                            <span class="text-[9px] font-mono bg-indigo-950 text-indigo-300 px-1.5 py-0.5 rounded">${a.confidence}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-300 leading-relaxed">${a.evidence}</p>
+                        <div class="text-[10px] text-gray-400 border-t border-gray-800 pt-1 flex justify-between">
+                            <span>${a.source}</span>
+                            <span class="text-indigo-400 font-semibold">${a.tag}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Error in fetchDriverData:", err);
+            }
+        }
+
+        // 5. FETCH & RENDER SECTION ④: EVIDENCE & LINEAGE
+        async function fetchEvidenceData() {
+            try {
+                const res = await fetch(`/api/evidence?persona=${currentPersona}`);
+                const data = await res.json();
+
+                const tbody = document.getElementById('evidence-freshness-body');
+                tbody.innerHTML = data.freshness_matrix.map(f => `
+                    <tr class="hover:bg-gray-900/40 transition">
+                        <td class="py-2 px-3 font-mono text-gray-200">${f.source}</td>
+                        <td class="py-2 px-3 text-gray-400">${f.refresh_cadence}</td>
+                        <td class="py-2 px-3 font-semibold text-emerald-400">${f.status}</td>
+                        <td class="py-2 px-3 font-mono text-gray-400">${f.records}</td>
+                    </tr>
+                `).join('');
+
+                const dag = document.getElementById('evidence-lineage-dag');
+                dag.innerHTML = data.lineage_dag.map(l => `
+                    <div class="flex items-center space-x-2 bg-gray-900/70 p-2 rounded-lg border border-gray-800">
+                        <span class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">${l.step}</span>
+                        <div class="flex-1 flex justify-between">
+                            <span class="font-bold text-white">${l.entity} <code class="text-indigo-300 font-normal">(${l.table})</code></span>
+                            <span class="text-gray-400 font-mono text-[10px]">${l.grain}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                const proof = document.getElementById('evidence-calc-proof');
+                proof.innerHTML = `
+                    <div class="text-indigo-300 font-bold">${data.calculation_proof.formula}</div>
+                    <div>${data.calculation_proof.step1}</div>
+                    <div>${data.calculation_proof.step2}</div>
+                    <div>${data.calculation_proof.step3}</div>
+                    <div class="text-white font-bold">${data.calculation_proof.step4}</div>
+                `;
+            } catch (err) {
+                console.error("Error in fetchEvidenceData:", err);
+            }
+        }
+
+        // 6. FETCH & RENDER SECTION ⑤: ACTION CENTER
+        async function fetchActionsData() {
+            try {
+                const res = await fetch('/api/actions');
+                const data = await res.json();
+
+                const playbooks = document.getElementById('playbooks-container');
+                playbooks.innerHTML = data.active_playbooks.map(p => `
+                    <div class="glass p-4 rounded-xl border border-indigo-800/50 space-y-2.5 flex flex-col justify-between">
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between items-start">
+                                <span class="text-[10px] font-mono bg-indigo-950 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-800">${p.id}</span>
+                                <span class="text-[10px] font-mono text-emerald-400 font-bold">${p.confidence_score} Conf</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-white">${p.action_title}</h4>
+                            <div class="text-[11px] text-gray-300 bg-gray-950/60 p-2 rounded border border-gray-800 space-y-1">
+                                <div><strong class="text-gray-400">Controllable Lever:</strong> ${p.controllable_lever}</div>
+                                <div><strong class="text-gray-400">Action Owner:</strong> ${p.action_owner}</div>
+                                <div class="text-emerald-400 font-bold">${p.expected_impact}</div>
+                                <div class="text-[10px] text-gray-400"><strong class="text-gray-400">Monitoring:</strong> ${p.monitoring_plan}</div>
+                            </div>
+                        </div>
+                        <button onclick="approvePlaybook('${p.id}')" class="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-lg text-xs shadow-lg transition flex items-center justify-center space-x-1.5">
+                            <i class="fa-solid fa-bolt text-yellow-300"></i>
+                            <span>1-Click Approve Playbook</span>
+                        </button>
+                    </div>
+                `).join('');
+
+                const tbody = document.getElementById('actions-scorecard-body');
+                tbody.innerHTML = data.historical_scorecard.map(s => `
+                    <tr class="hover:bg-gray-900/40 transition">
+                        <td class="py-2 px-3 font-mono font-bold text-indigo-400">${s.action_id}</td>
+                        <td class="py-2 px-3 font-semibold text-white">${s.playbook}</td>
+                        <td class="py-2 px-3 font-mono text-indigo-300">${s.projected}</td>
+                        <td class="py-2 px-3 font-mono text-emerald-400 font-bold">${s.realized}</td>
+                        <td class="py-2 px-3 font-mono text-emerald-300 font-bold">${s.accuracy}</td>
+                        <td class="py-2 px-3"><span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-emerald-950 text-emerald-400 border border-emerald-800">${s.verdict}</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Error in fetchActionsData:", err);
+            }
+        }
+
+        async function approvePlaybook(playbookId) {
+            const res = await fetch('/api/actions/approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ playbook_id: playbookId })
+            });
+            const data = await res.json();
+            showToast("Playbook Approved & Activated", `${playbookId} executed. 7-Day Realization Tracking active.`);
+        }
+
+        // 7. SECTION ⑥: ASK THE ENGINE CHAT
+        async function askQuestion(queryText) {
+            document.getElementById('chat-input').value = queryText;
+            await sendChat();
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chat-input');
+            const q = input.value.trim();
+            if (!q) return;
+
+            const chatLog = document.getElementById('chat-conversation');
+            chatLog.innerHTML += `
+                <div class="flex items-start space-x-2 justify-end">
+                    <div class="bg-indigo-600 text-white p-2.5 rounded-lg text-xs max-w-[80%]">${q}</div>
+                    <span class="w-5 h-5 rounded bg-gray-700 text-white flex items-center justify-center font-bold text-[10px]">U</span>
+                </div>
+            `;
+
+            input.value = '';
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: q, persona: currentPersona })
+            });
+            const data = await res.json();
+
+            chatLog.innerHTML += `
+                <div class="flex items-start space-x-2">
+                    <span class="w-5 h-5 rounded bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">V</span>
+                    <div class="bg-gray-900 p-3 rounded-lg border border-gray-800 text-gray-300 space-y-1.5 max-w-[85%]">
+                        <div class="text-[10px] font-mono text-indigo-400 font-bold uppercase">Intent: ${data.intent}</div>
+                        <div class="leading-relaxed">${data.answer}</div>
+                        <div class="text-[10px] text-gray-400 border-t border-gray-800 pt-1 flex justify-between">
+                            <span>Key Metric: <strong class="text-white">${data.supporting_kpi}</strong></span>
+                            <span>Action: <strong class="text-yellow-400">${data.suggested_action}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        // 8. SECTION ⑦: FEEDBACK & LEARNING
+        function selectRating(r) {
+            currentRating = r;
+            document.getElementById('fb-btn-up').className = (r === 'up') ? 'px-3 py-1.5 bg-emerald-600 text-white rounded border border-emerald-500 flex items-center space-x-1' : 'px-3 py-1.5 bg-gray-800 text-gray-400 rounded border border-gray-700 flex items-center space-x-1';
+            document.getElementById('fb-btn-down').className = (r === 'down') ? 'px-3 py-1.5 bg-red-600 text-white rounded border border-red-500 flex items-center space-x-1' : 'px-3 py-1.5 bg-gray-800 text-gray-400 rounded border border-gray-700 flex items-center space-x-1';
+        }
+
+        async function submitFeedbackForm() {
+            const driver = document.getElementById('fb-driver-select').value;
+            const comment = document.getElementById('fb-comment').value;
+
+            const res = await fetch('/api/feedback/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    insight_id: 'INS-8401',
+                    rating: currentRating,
+                    suggested_driver: driver,
+                    comment: comment
+                })
+            });
+            const data = await res.json();
+            showToast("Feedback Logged & Evaluated", `Record ${data.feedback_id} stored in evaluation dataset.`);
+            document.getElementById('fb-comment').value = '';
+            await fetchFeedbackData();
+        }
+
+        async function fetchFeedbackData() {
+            try {
+                const res = await fetch('/api/feedback/list');
+                const data = await res.json();
+
+                document.getElementById('eval-count-badge').innerText = `${data.total_count} Logged Records`;
+
+                const list = document.getElementById('eval-history-list');
+                list.innerHTML = data.feedback_records.map(f => `
+                    <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800 space-y-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-white">${f.feedback_id} • <span class="${f.rating === 'up' ? 'text-emerald-400' : 'text-red-400'}">${f.rating === 'up' ? '👍 Approved' : '👎 Corrected'}</span></span>
+                            <span class="text-[10px] text-gray-500">${f.timestamp}</span>
+                        </div>
+                        <div class="text-[11px] text-gray-300">Driver: <strong class="text-indigo-300">${f.suggested_driver}</strong></div>
+                        <p class="text-[10px] text-gray-400 italic">"${f.comment}"</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Error in fetchFeedbackData:", err);
+            }
+        }
+
+        // =========================================================
+        // 9. MULTI-FILE & MULTI-TABLE INGESTION HANDLER
+        // =========================================================
+        function setUploadTab(tab) {
+            currentUploadMode = tab;
+            ['files', 'samples', 'paste'].forEach(t => {
+                const btn = document.getElementById(`tab-up-${t}`);
+                const view = document.getElementById(`view-up-${t}`);
+                if (btn) btn.className = (t === tab) ? 'pb-2 font-bold text-emerald-400 border-b-2 border-emerald-500' : 'pb-2 text-gray-400 hover:text-gray-200';
+                if (view) view.className = (t === tab) ? 'space-y-3 text-xs' : 'space-y-3 text-xs hidden';
+            });
+        }
+
+        function handleMultipleFiles(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const content = evt.target.result;
+                    const sizeKb = (file.size / 1024).toFixed(1);
+                    
+                    // Infer table role
+                    let role = "📊 Flat Table";
+                    const fl = file.name.toLowerCase();
+                    if (fl.includes("item")) role = "📦 Order Items Table";
+                    else if (fl.includes("order")) role = "🛒 Orders Table";
+                    else if (fl.includes("prod")) role = "🏷️ Products Catalog";
+                    else if (fl.includes("cust")) role = "👤 Customers Table";
+                    else if (fl.includes("pay")) role = "💳 Payments Table";
+
+                    stagedFiles.push({
+                        filename: file.name,
+                        content: content,
+                        size: `${sizeKb} KB`,
+                        role: role
+                    });
+                    renderStagedFiles();
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        function removeStagedFile(idx) {
+            stagedFiles.splice(idx, 1);
+            renderStagedFiles();
+        }
+
+        function clearStagedFiles() {
+            stagedFiles = [];
+            renderStagedFiles();
+        }
+
+        function renderStagedFiles() {
+            document.getElementById('staged-count').innerText = stagedFiles.length;
+            const container = document.getElementById('staged-files-list');
+
+            if (stagedFiles.length === 0) {
+                container.innerHTML = `<div class="text-gray-500 italic text-[11px] p-2 bg-gray-950/40 rounded border border-gray-800 text-center">No files selected yet. Drag & drop or select files above.</div>`;
+                return;
+            }
+
+            container.innerHTML = stagedFiles.map((f, i) => `
+                <div class="flex items-center justify-between p-2 bg-gray-950 rounded-lg border border-gray-800 hover:border-emerald-500/50 transition text-xs">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-file-csv text-emerald-400"></i>
+                        <span class="font-bold text-white">${f.filename}</span>
+                        <span class="text-[10px] text-gray-500 font-mono">(${f.size})</span>
+                        <span class="px-1.5 py-0.2 text-[9px] font-mono rounded bg-gray-900 text-indigo-300 border border-gray-700">${f.role}</span>
+                    </div>
+                    <button onclick="removeStagedFile(${i})" class="text-gray-500 hover:text-red-400 px-1.5 py-0.5 rounded transition"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                </div>
+            `).join('');
+        }
+
+        // 1-Click Samples
+        const samplePresets = {
+            fashion: {
+                name: "FashionHub Brazil Store",
+                files: [
+                    {
+                        filename: "fashion_orders_export.csv",
+                        content: `order_id,purchase_date,gmv,category,customer_state,status
+ORD-101,2026-08-20,185.00,Luxury Handbags,SP,Delivered
+ORD-102,2026-08-21,94.50,Designer Footwear,RJ,Delivered
+ORD-103,2026-08-21,45.00,Casual Apparel,MG,Delivered
+ORD-104,2026-08-22,210.00,Luxury Handbags,SP,Delivered
+ORD-105,2026-08-23,38.00,Accessories,PR,Delivered
+ORD-106,2026-08-24,120.00,Designer Footwear,RS,Delivered`
+                    }
+                ]
+            },
+            aviation: {
+                name: "Aviation Live Fleet Operations",
+                files: [
+                    {
+                        filename: "flight_revenue_ledger.csv",
+                        content: `flight_id,date,ticket_revenue,route_category,hub_region,baggage_status
+FL-801,2026-08-20,12400.00,Transatlantic Longhaul,GRU,Normal
+FL-802,2026-08-21,8900.00,Regional Shuttle,SDU,Delayed
+FL-803,2026-08-22,14200.00,Transatlantic Longhaul,GIG,Normal
+FL-804,2026-08-23,6100.00,Domestic Connector,CNF,Normal
+FL-805,2026-08-24,9800.00,Regional Shuttle,BSB,Delayed`
+                    }
+                ]
+            },
+            multi_sample: {
+                name: "Enterprise Multi-Table E-Commerce Bundle",
+                files: [
+                    {
+                        filename: "enterprise_orders.csv",
+                        content: `order_id,customer_id,order_status,purchase_date
+ORD-501,CUST-901,delivered,2026-08-20
+ORD-502,CUST-902,delivered,2026-08-21
+ORD-503,CUST-903,delivered,2026-08-22`
+                    },
+                    {
+                        filename: "enterprise_order_items.csv",
+                        content: `order_id,product_id,price,freight_value
+ORD-501,PROD-A,340.00,25.00
+ORD-502,PROD-B,180.00,15.00
+ORD-503,PROD-A,510.00,30.00`
+                    },
+                    {
+                        filename: "enterprise_products.csv",
+                        content: `product_id,product_category_name
+PROD-A,Luxury Handbags & Watches
+PROD-B,Athletic Footwear`
+                    }
+                ]
+            }
+        };
+
+        function loadSampleData(key) {
+            const s = samplePresets[key];
+            if (!s) return;
+            stagedFiles = s.files.map(f => ({
+                filename: f.filename,
+                content: f.content,
+                size: `${(f.content.length / 1024).toFixed(1)} KB`,
+                role: f.filename.includes("item") ? "📦 Order Items" : (f.filename.includes("prod") ? "🏷️ Products Catalog" : "🛒 Orders Table")
+            }));
+            document.getElementById('upload-batch-name').value = s.name;
+            setUploadTab('files');
+            renderStagedFiles();
+            showToast("Multi-Table Bundle Staged", `Loaded ${stagedFiles.length} table(s) for ${s.name}. Click 'Ingest' to activate.`);
+        }
+
+        // EXECUTE MULTI-FILE INGESTION
+        async function executeMultiFileUpload() {
+            const indicator = document.getElementById('upload-status-indicator');
+            const submitBtn = document.getElementById('btn-submit-upload');
+            
+            try {
+                let payload = {};
+
+                if (currentUploadMode === 'paste') {
+                    const dsName = document.getElementById('upload-paste-name').value || "Pasted Dataset";
+                    const content = document.getElementById('upload-paste-content').value;
+                    if (!content || !content.trim()) {
+                        alert("Please paste some CSV data.");
+                        return;
+                    }
+                    payload = { dataset_name: dsName, raw_data: content };
+                } else {
+                    const dsName = document.getElementById('upload-batch-name').value || "Custom E-Commerce Store";
+                    if (stagedFiles.length === 0) {
+                        alert("Please select at least 1 file or load a sample template.");
+                        return;
+                    }
+                    payload = {
+                        dataset_name: dsName,
+                        files: stagedFiles.map(f => ({ filename: f.filename, content: f.content }))
+                    };
+                }
+
+                indicator.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-emerald-400 mr-1"></i> Reconciling and calculating...`;
+                submitBtn.disabled = true;
+
+                const res = await fetch('/api/data/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    alert(`Upload Error: ${data.error}`);
+                    indicator.innerText = "Error in ingestion.";
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                closeModal('modal-upload');
+                showToast("Multi-File Ingestion Complete", `${data.message || 'Dataset activated'} Total Revenue: ${data.total_revenue}`);
+
+                // Refetch all 7 sections
+                await fetchOverviewData();
+                await fetchExplorerData('revenue', 'category');
+                await fetchDriverData();
+                await fetchEvidenceData();
+                await fetchActionsData();
+                switchTab('overview');
+
+                indicator.innerText = "Ready to ingest.";
+                submitBtn.disabled = false;
+                stagedFiles = [];
+                renderStagedFiles();
+
+            } catch (err) {
+                console.error("Error in executeMultiFileUpload:", err);
+                alert("Upload failed. Please check file format.");
+                indicator.innerText = "Failed.";
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function resetToReference() {
+            const res = await fetch('/api/data/reset', { method: 'POST' });
+            const data = await res.json();
+            showToast("Reset Complete", "Re-activated Olist Brazilian E-Commerce Reference Dataset.");
+            await fetchOverviewData();
+            await fetchExplorerData('revenue', 'category');
+            await fetchDriverData();
+            await fetchEvidenceData();
+            await fetchActionsData();
+        }
+
+        // 10. SCENARIOS INTERACTION
+        async function triggerScenario(scen) {
+            ['btn-scen-1', 'btn-scen-2', 'btn-scen-3'].forEach(id => {
+                document.getElementById(id).className = 'px-2 py-1 rounded font-medium transition text-gray-300 hover:text-white text-[11px]';
+            });
+
+            if (scen === 'multi_factor') {
+                document.getElementById('btn-scen-1').className = 'px-2 py-1 rounded font-medium transition bg-indigo-600 text-white text-[11px]';
+                switchTab('drivers');
+                showToast("Scenario 1 Active", "Multi-Factor Decomposition: Volume 51%, Mix 24%, Payment 15%.");
+            } else if (scen === 'abstention') {
+                document.getElementById('btn-scen-2').className = 'px-2 py-1 rounded font-medium transition bg-amber-600 text-white text-[11px]';
+                await openAbstentionModal();
+            } else if (scen === 'cold_start') {
+                document.getElementById('btn-scen-3').className = 'px-2 py-1 rounded font-medium transition bg-purple-600 text-white text-[11px]';
+                await openColdStartModal();
+            }
+        }
+
+        // SCENARIO 2: ABSTENTION INTERACTION
+        async function openAbstentionModal() {
+            const res = await fetch('/api/scenarios/abstention');
+            const data = await res.json();
+
+            document.getElementById('abst-ds-name').innerText = `Dataset: ${data.dataset_name}`;
+            document.getElementById('abst-reason-text').innerText = data.reason;
+            document.getElementById('abst-prompt-text').innerText = data.clarification_prompt;
+            document.getElementById('abst-result-card').classList.add('hidden');
+
+            const container = document.getElementById('abst-options-container');
+            container.innerHTML = data.options.map(opt => `
+                <button onclick="resolveAbstention('${opt.id}', '${opt.label.replace(/'/g, "\\'")}')" class="w-full py-2.5 px-3 bg-gray-800 hover:bg-indigo-600 text-left rounded-lg text-white border border-gray-700 transition flex justify-between items-center group">
+                    <span class="font-medium">${opt.label}</span>
+                    <i class="fa-solid fa-arrow-right text-[10px] text-gray-400 group-hover:text-white group-hover:translate-x-1 transition"></i>
+                </button>
+            `).join('');
+
+            document.getElementById('modal-abstention').classList.remove('hidden');
+        }
+
+        async function resolveAbstention(optId, optLabel) {
+            const res = await fetch('/api/scenarios/abstention/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ option_id: optId, selected_option: optLabel })
+            });
+            const data = await res.json();
+
+            const resCard = document.getElementById('abst-result-card');
+            document.getElementById('abst-res-status').innerText = data.status;
+            document.getElementById('abst-res-conf').innerText = data.upgraded_confidence;
+            document.getElementById('abst-res-cause').innerText = data.resolved_cause;
+            document.getElementById('abst-res-action').innerText = `Prescriptive Action: ${data.action_recommended} (${data.financial_recovery})`;
+            resCard.classList.remove('hidden');
+
+            showToast(`Confidence Upgraded: ${data.upgraded_confidence}`, data.resolved_cause);
+        }
+
+        // SCENARIO 3: SPARSE HISTORY SANDBOX
+        async function openColdStartModal() {
+            document.getElementById('cold-slider').value = 4;
+            await updateSparseHistory(4);
+            document.getElementById('modal-cold-start').classList.remove('hidden');
+        }
+
+        async function updateSparseHistory(days) {
+            document.getElementById('cold-days-label').innerText = `${days} Day${days > 1 ? 's' : ''} of History`;
+            
+            const res = await fetch(`/api/scenarios/cold-start?days=${days}`);
+            const data = await res.json();
+
+            document.getElementById('cold-ds-entity').innerText = `${data.entity} (${data.dataset_name})`;
+            document.getElementById('cold-status-badge').innerText = data.status;
+            document.getElementById('cold-model-name').innerText = data.benchmark_used;
+            document.getElementById('cold-alarm-state').innerText = data.model_status;
+            document.getElementById('cold-alarm-state').className = (days < 7) ? 'text-emerald-400 font-bold' : 'text-indigo-400 font-bold';
+            document.getElementById('cold-traj-state').innerText = data.trajectory_delta;
+            document.getElementById('cold-verdict-desc').innerText = data.verdict;
+        }
+
+        // 11. TELEMETRY & MODALS
+        async function fetchTelemetryData() {
+            try {
+                const res = await fetch('/api/telemetry');
+                const data = await res.json();
+                document.getElementById('tel-latency').innerText = data.total_latency_ms + ' ms';
+                document.getElementById('tel-tokens').innerText = data.total_tokens + ' tokens';
+                document.getElementById('tel-cost').innerText = data.cost_formatted;
+            } catch (err) {
+                console.error("Error in fetchTelemetryData:", err);
+            }
+        }
+
+        function openUploadModal() { document.getElementById('modal-upload').classList.remove('hidden'); }
+        function openLLMBreakdownModal() { document.getElementById('modal-llm-breakdown').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function showToast(title, desc) {
+            const toast = document.getElementById('toast-banner');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-desc').innerText = desc;
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 4000);
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>

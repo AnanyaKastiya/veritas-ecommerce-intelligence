@@ -1,0 +1,4 @@
+start_date,end_date,campaign,campaign_type,customer_eligibility,discount_rate,provenance
+2017-09-10,2017-09-24,New Customer Welcome,Acquisition,New Customer,0.1,Simulated
+2018-01-15,2018-01-28,Category Flash Sale,Promotion,All Customers,0.15,Simulated
+2018-04-05,2018-04-18,Returning Customer Offer,Retention,Returning Customer,0.07,Simulated
