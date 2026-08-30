@@ -8,7 +8,9 @@ decomposing metric drops into Volume, Mix, and Friction drivers,
 cross-examining telemetry via an AI Tribunal, and generating closed-loop
 prescriptive playbooks.
 
-For a full description of the platform and architecture, visit the
+A production build is deployed and accessible at the
+[live demo application](https://veritas-ceg2.onrender.com). For a full
+description of the platform and architecture, visit the
 [project repository](https://github.com/AnanyaKastiya/veritas-ecommerce-intelligence).
 Submit bug reports and feature suggestions, or track changes in the
 [issue queue](https://github.com/AnanyaKastiya/veritas-ecommerce-intelligence/issues).
@@ -47,6 +49,11 @@ This platform requires the following dependencies:
 
 
 ## Installation
+
+The quickest way to explore the platform is to visit the
+[live demo application](https://veritas-ceg2.onrender.com).
+
+To run the application locally:
 
 1. Clone this repository locally:
     ```bash
