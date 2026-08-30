@@ -271,4 +271,5 @@ def run(port=8000, host='0.0.0.0'):
     httpd.serve_forever()
 
 if __name__ == '__main__':
-    run(8000, '0.0.0.0')
+    port = int(os.environ.get('PORT', 8000))
+    run(port, '0.0.0.0')

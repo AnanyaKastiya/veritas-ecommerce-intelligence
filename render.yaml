@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: veritas-ecommerce-intelligence
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend/server.py
+    envVars:
+      - key: PORT
+        value: 10000
