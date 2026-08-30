@@ -1,11 +1,12 @@
 # Veritas E-Commerce Intelligence
 
-The Veritas E-Commerce Intelligence engine provides an autonomous
-e-commerce KPI diagnosis, root-cause machine learning attribution, and
-prescriptive decisioning platform. It transforms reactive dashboards into an
-autonomous decision cockpit by decomposing metric drops into Volume, Mix, and
-Friction drivers, cross-examining telemetry via an AI Tribunal, and generating
-closed-loop prescriptive playbooks.
+The Veritas E-Commerce Intelligence engine was developed for the Accenture
+Innovation Challenge as an autonomous e-commerce KPI diagnosis, root-cause
+machine learning attribution, and prescriptive decisioning platform. It
+transforms reactive dashboards into an autonomous decision cockpit by
+decomposing metric drops into Volume, Mix, and Friction drivers,
+cross-examining telemetry via an AI Tribunal, and generating closed-loop
+prescriptive playbooks.
 
 For a full description of the platform and architecture, visit the
 [project repository](https://github.com/AnanyaKastiya/veritas-ecommerce-intelligence).
@@ -169,3 +170,4 @@ appropriate data granularity, and RBAC security masking.
 ## Maintainers
 
 - Ananya Kastiya - [AnanyaKastiya](https://github.com/AnanyaKastiya)
+- Osheen Dongre - [Osheen145](https://github.com/Osheen145)
