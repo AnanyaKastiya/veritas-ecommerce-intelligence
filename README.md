@@ -1,158 +1,171 @@
-# VERITAS — E-Commerce KPI Intelligence & Action Engine
+# Veritas E-Commerce Intelligence
 
-> **Autonomous Multi-Agent KPI Diagnosis, Root-Cause ML Attribution, & Prescriptive Decisioning Engine for E-Commerce**
+The Veritas E-Commerce Intelligence engine provides an autonomous
+e-commerce KPI diagnosis, root-cause machine learning attribution, and
+prescriptive decisioning platform. It transforms reactive dashboards into an
+autonomous decision cockpit by decomposing metric drops into Volume, Mix, and
+Friction drivers, cross-examining telemetry via an AI Tribunal, and generating
+closed-loop prescriptive playbooks.
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
-[![Architecture](https://img.shields.io/badge/Architecture-Deterministic%20ML%20%2B%20LLM%20RAG-indigo.svg)](#architecture)
+For a full description of the platform and architecture, visit the
+[project repository](https://github.com/AnanyaKastiya/veritas-ecommerce-intelligence).
+Submit bug reports and feature suggestions, or track changes in the
+[issue queue](https://github.com/AnanyaKastiya/veritas-ecommerce-intelligence/issues).
 
----
 
-## 🎯 Executive Summary
+## Table of contents
 
-**VERITAS** is a production-grade e-commerce intelligence engine that transforms reactive analytics dashboards into an **autonomous decision-making cockpit**.
+- Requirements
+- Recommended extensions
+- Installation
+- Configuration
+- Architecture & key features
+- Challenge scenarios
+- Troubleshooting
+- FAQ
+- Maintainers
 
-Instead of simply reporting *what* happened, VERITAS:
-1. **Detects KPI anomalies** via Bayesian Dynamic Envelopes ($z \le -2.5\sigma$).
-2. **Decomposes root causes** through Price-Volume-Mix (PVM) and Shapley ML attribution (summing strictly to 100%).
-3. **Cross-examines evidence** through a 3-agent AI Courtroom (*Internal Detective*, *Market Spy*, *Data Sentry*).
-4. **Knows when to abstain** under stale or contradictory telemetry (triggering human-in-the-loop diagnostic polling).
-5. **Generates closed-loop prescriptive playbooks** with 7-day realization tracking.
-6. **Adapts to user personas** (*👔 Business Manager Mode* vs. *📊 Data Analyst Mode*).
-7. **Universal Ingestion**: Reconciles reference datasets (100,000+ Olist orders) or multi-table user CSV uploads with auto-joins.
 
----
+## Requirements
 
-## 🏛️ Computational Architecture: LLM vs. Non-LLM Separation
+This platform requires the following dependencies:
 
-Following enterprise quantitative principles, **LLMs are NEVER used for mathematical arithmetic, variance contribution, or financial metrics**.
+- [Python 3.10](https://www.python.org/downloads/) or higher
+- [Pandas](https://pandas.pydata.org/) (version 2.0.0 or higher)
+- [NumPy](https://numpy.org/) (version 1.24.0 or higher)
+- Modern web browser with ECMAScript 6 support (Chrome, Edge, Firefox, Safari)
 
-```mermaid
-graph TD
-    A[Heterogeneous Data Sources: Orders, Items, Products, Reviews, Context] --> B[Canonical Semantic Layer]
-    B --> C[Deterministic Analytics Suite]
-    
-    subgraph "Deterministic & Statistical Layer (Non-LLM)"
-        C --> D1[KPI Engine: PVM Decomposition]
-        C --> D2[Materiality Engine: Bayesian Envelopes]
-        C --> D3[Driver ML: Shapley Variance Attribution]
-        C --> D4[Evidence Engine: Shannon Entropy & Freshness]
-    end
-    
-    subgraph "Generative Intelligence Layer (LLM)"
-        D1 & D2 & D3 & D4 --> E1[Intent Classifier & Semantic Router]
-        D1 & D2 & D3 & D4 --> E2[Persona Narrative Generator]
-        D1 & D2 & D3 & D4 --> E3[Natural Language Business Q&A]
-    end
-    
-    E1 & E2 & E3 --> F[Interactive Dark-Mode Cockpit http://localhost:8000]
-```
 
-| Layer | Component | Methodology | Computational Type | Compute Share |
-|---|---|---|---|:---:|
-| **Ingestion** | Canonical Semantic Layer | Schema Contract & Relational Auto-Join | Non-LLM | 15% |
-| **Statistical** | Materiality & Anomaly Detection | Dynamic Bayesian Bounds ($z$-score) | Non-LLM | 12% |
-| **Attribution** | Multi-Factor Root-Cause Engine | Exact PVM Step-Down & Shapley ML | Non-LLM ML | 25% |
-| **Trust** | Evidence & Abstention Engine | Shannon Entropy & Freshness Matrix | Non-LLM | 10% |
-| **Routing** | Intent Classifier ("Ask the Engine") | Few-Shot Semantic Intent Mapping | Gemini 1.5 Flash | 18% |
-| **Synthesis** | Persona Narrative & Playbooks | Role-Tailored Generative Briefings | Gemini 1.5 Flash | 20% |
+## Recommended extensions
 
----
+- [Google GenAI SDK](https://pypi.org/project/google-genai/): When enabled with
+    a valid API key, provides advanced natural language Q&A and narrative
+    persona synthesis.
+- [Tailwind CSS CDN](https://tailwindcss.com/): Included out-of-the-box for
+    responsive dark-mode rendering.
 
-## 🚀 Key Features & The 7 Cockpit Sections
 
-### ① Overview & KPI Health Monitoring
-- Reconciles **5 connected KPIs**: Total Revenue (GMV), Order Volume, Average Order Value (AOV), On-Time Delivery SLA, and Customer Satisfaction.
-- Dynamic Top Insight Hero with real-time driver attribution chips.
+## Installation
 
-### ② KPI Explorer (What, Where, When, Who)
-- Slice across dimensions: Product Categories, Geographic Regions, and 7-day trend timelines.
-- Ranked by severity of revenue drag.
+1. Clone this repository locally:
+    ```bash
+    git clone https://github.com/AnanyaKastiya/veritas-ecommerce-intelligence.git
+    cd veritas-ecommerce-intelligence
+    ```
+1. Ensure Python 3.10+ is installed and accessible in your PATH.
+1. Launch the platform server using the Windows batch launcher:
+    ```cmd
+    run_app.bat
+    ```
+1. Alternatively, launch the backend server directly via Python:
+    ```bash
+    python backend/server.py
+    ```
+1. Open your web browser and navigate to `http://localhost:8000/`.
 
-### ③ Root-Cause Driver Analysis & The AI Courtroom
-- **Exact Multi-Factor Attribution**: Decomposes variance into Volume (51%), Mix (24%), and Payment Friction (15%).
+
+## Configuration
+
+1. Choose your analytical role in the top header:
+    - **👔 Business Manager**: Executive summaries, P&L financial margin drag,
+        and one-click action approvals.
+    - **📊 Data Analyst**: Deep statistical audits, exact z-scores, Shapley
+        variance shares, and end-to-end SQL DAG lineage.
+1. Ingest reference or custom datasets:
+    - The platform automatically initializes with 100,000+ orders from the
+        reference Olist Brazilian E-Commerce dataset.
+    - To ingest custom data, click `+ Upload Data (Single / Multi-File)`.
+    - Select single or multiple CSV tables (`orders.csv`, `order_items.csv`,
+        `products.csv`). The canonical semantic layer automatically detects
+        keys and joins relational tables in memory.
+1. Navigate across the 7 cockpit sections using the top navigation bar:
+    - Section 1: Overview & KPI Health Monitoring
+    - Section 2: KPI Explorer (What, Where, When, Who Slicers)
+    - Section 3: Root-Cause Driver Analysis & The AI Courtroom
+    - Section 4: Evidence & Lineage Panel
+    - Section 5: Action Center & Closed-Loop Realization Tracker
+    - Section 6: Ask the Engine (Natural Language Business Q&A)
+    - Section 7: Feedback Loop & Continuous Calibration
+
+
+## Architecture & key features
+
+Veritas strictly separates deterministic statistical computation from
+generative AI synthesis:
+
+- **Deterministic & Statistical Engine (Non-LLM)**:
+    All financial calculations, Price-Volume-Mix (PVM) step-down arithmetic,
+    Shapley variance attributions, Bayesian anomaly envelopes ($z$-scores), and
+    Shannon entropy calculations execute deterministically in Python/NumPy.
+    Language models are never used for mathematical arithmetic.
+- **Generative AI Layer (LLM RAG)**:
+    Powered by Gemini 1.5 Flash for natural language intent classification,
+    persona-tailored executive summaries, and multi-turn business Q&A.
 - **The AI Courtroom (Tribunal)**:
-  - 🕵️ **Internal Operational Detective**: Analyzes 99k+ reviews and delivery delay logs.
-  - 🕵️ **Market & Context Spy**: Cross-references promotional campaigns and external price elasticity.
-  - 🛡️ **Data Integrity Sentry**: Validates database replica consistency and schema typing (94% Burden of Proof).
+    Cross-examines internal customer reviews, external marketing promotions,
+    and database integrity to establish a 94% calibrated burden of proof.
+- **Closed-Loop Realization Tracking**:
+    Each prescriptive playbook links `Driver → Lever → Action → Owner →
+    Expected Impact → 7-Day Monitoring` with a 94.1% historical accuracy track
+    record.
 
-### ④ Evidence & Lineage Panel
-- **Data Freshness Matrix**: Real-time status of underlying tables.
-- **Lineage DAG**: Traceability from raw tables to canonical metrics.
-- **"Show Calculation" Accordion**: Step-by-step arithmetic proofs.
 
-### ⑤ Action Center & Closed-Loop Realization Tracker
-- Prescriptive Playbook structure: `Driver → Lever → Action → Owner → Expected Impact → Confidence → 7-Day Monitoring`.
-- Historical realization scorecard (94.1% accuracy).
+## Challenge scenarios
 
-### ⑥ Ask the Engine (Natural Language Q&A)
-- Grounded in active dataset. Zero SQL knowledge required.
-- Handles root-cause queries, category breakdowns, and operational recommendations.
+The application includes interactive simulators for the three primary
+competition scenarios in the top navigation bar:
 
-### ⑦ Feedback Loop & Continuous Calibration
-- Capture analyst feedback (`👍 / 👎 / ✏️ / 💬`) to persistently calibrate driver weights.
+1. **🎯 Scenario 1: Multi-Factor KPI Attribution**:
+    Decomposes an -8.4% weekly revenue decline into Volume Contraction (51%),
+    Product Mix Shift (24%), and Payment Friction (15%).
+1. **⚠️ Scenario 2: Contradictory Telemetry & Active Abstention**:
+    Demonstrates active abstention when telemetry is stale or contradictory
+    (41% confidence). Features a human-in-the-loop diagnostic poll that
+    dynamically diagnoses either Promo Expiry (+94.6% confidence) or Tracking
+    Pixel Data Loss (+96.8% confidence).
+1. **🚀 Scenario 3: Sparse History & New Product Launch**:
+    An interactive simulation sandbox with an observation window slider (1 to
+    60 days) illustrating how the engine suppresses false alarms during early
+    ramp (< 7 days) and switches to Category Peer Cohort Proxy Benchmarks.
 
----
 
-## 🎭 The 3 Challenge Scenarios
+## Troubleshooting
 
-1. **🎯 Scenario 1: Multi-Factor KPI Attribution**
-   - Decomposes an $-8.4\%$ weekly revenue drop into volume, mix, payment friction, and carrier delays.
-2. **⚠️ Scenario 2: Contradictory Telemetry & Active Abstention**
-   - When telemetry is stale or contradictory, the engine abstains ($41\%$ confidence) and launches a human-in-the-loop diagnostic poll, recalculating the causal graph upon selection.
-3. **🚀 Scenario 3: Sparse History & New Product Launch Sandbox**
-   - Interactive slider demonstrating how the engine suppresses false alarms during early ramp ($< 7$ days) and switches to Category Peer Cohort Proxy Benchmarks.
+- **Server fails to bind to port 8000**:
+    Verify that no other application is using port 8000, or modify the port
+    parameter in `backend/server.py`.
+- **Uploaded CSV fails to map**:
+    Ensure the CSV file contains a numeric value column (e.g. `price`, `gmv`,
+    `sales`, `revenue`, `amount`) and is comma, semicolon, or tab-delimited.
+- **Console encoding warnings on Windows**:
+    Ensure your terminal supports UTF-8 encoding by executing `chcp 65001`
+    prior to launching the server.
 
----
 
-## ⚡ Quick Start
+## FAQ
 
-### 1. Prerequisites
-- Python 3.10 or higher
-- Standard modern browser (Chrome, Firefox, Edge, Safari)
+**Q: Does Veritas use LLMs to calculate revenue drop percentages or Shapley
+values?**
 
-### 2. Installation & Launch
+**A:** No. Under the strict quantitative architecture, all arithmetic,
+percentages, and statistical z-scores are computed deterministically via
+Python algorithms. LLMs are strictly confined to natural language synthesis and
+intent classification.
 
-```bash
-# Clone the repository
-git clone https://github.com/AnanyaKastiya/veritas-ecommerce-intelligence.git
-cd veritas-ecommerce-intelligence
+**Q: Can I upload multiple relational CSV files at the same time?**
 
-# Launch the platform (Windows)
-run_app.bat
+**A:** Yes. The universal ingestion modal supports selecting multiple CSV files
+simultaneously (`orders.csv`, `order_items.csv`, `products.csv`). The canonical
+semantic layer automatically joins them on common entity keys (`order_id`,
+`product_id`).
 
-# Or launch via Python directly
-python backend/server.py
-```
+**Q: How do I switch between the Business Manager and Data Analyst views?**
 
-Open your browser at **`http://localhost:8000/`**.
+**A:** Click the `👔 Manager` or `📊 Analyst` buttons in the top-right header
+bar. The entire interface updates immediately with role-tailored narratives,
+appropriate data granularity, and RBAC security masking.
 
----
 
-## 📂 Project Structure
+## Maintainers
 
-```
-veritas-bi/
-├── backend/
-│   └── server.py             # Multi-threaded HTTP REST API server
-├── engine/
-│   ├── semantic_layer.py     # Universal Multi-File Canonical Semantic Layer
-│   └── analytics_suite.py    # 8 analytical engines (KPI, Drivers, Tribunal, Lineage, Actions, Chat, Feedback, Telemetry)
-├── frontend/
-│   └── index.html            # Dark-mode Web Cockpit with Tailwind & FontAwesome
-├── data/                     # Olist reference datasets & simulated business context
-│   ├── olist_orders_dataset.csv
-│   ├── olist_order_items_dataset.csv
-│   ├── olist_products_dataset.csv
-│   ├── olist_order_reviews_dataset.csv
-│   ├── simulated_business_context_olist.csv
-│   └── simulated_promotion_events_olist.csv
-├── docs/                     # Technical proposals & demo storyboards
-├── run_app.bat               # 1-click Windows launcher
-└── README.md
-```
-
----
-
-## 📄 License
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+- Ananya Kastiya - [AnanyaKastiya](https://github.com/AnanyaKastiya)
