@@ -19,11 +19,9 @@ Submit bug reports and feature suggestions, or track changes in the
 ## Table of contents
 
 - Requirements
-- Recommended extensions
+- Recommended modules
 - Installation
 - Configuration
-- Architecture & key features
-- Challenge scenarios
 - Troubleshooting
 - FAQ
 - Maintainers
@@ -39,7 +37,7 @@ This platform requires the following dependencies:
 - Modern web browser with ECMAScript 6 support (Chrome, Edge, Firefox, Safari)
 
 
-## Recommended extensions
+## Recommended modules
 
 - [Google GenAI SDK](https://pypi.org/project/google-genai/): When enabled with
     a valid API key, provides advanced natural language Q&A and narrative
@@ -89,55 +87,25 @@ To run the application locally:
 1. Navigate across the 7 cockpit sections using the top navigation bar:
     - Section 1: Overview & KPI Health Monitoring
     - Section 2: KPI Explorer (What, Where, When, Who Slicers)
-    - Section 3: Root-Cause Driver Analysis & The AI Courtroom
-    - Section 4: Evidence & Lineage Panel
+    - Section 3: Root-Cause Driver Analysis & The AI Courtroom (Tribunal)
+    - Section 4: Evidence & Lineage Panel (Freshness Matrix & SQL DAG)
     - Section 5: Action Center & Closed-Loop Realization Tracker
     - Section 6: Ask the Engine (Natural Language Business Q&A)
     - Section 7: Feedback Loop & Continuous Calibration
-
-
-## Architecture & key features
-
-Veritas strictly separates deterministic statistical computation from
-generative AI synthesis:
-
-- **Deterministic & Statistical Engine (Non-LLM)**:
-    All financial calculations, Price-Volume-Mix (PVM) step-down arithmetic,
-    Shapley variance attributions, Bayesian anomaly envelopes ($z$-scores), and
-    Shannon entropy calculations execute deterministically in Python/NumPy.
-    Language models are never used for mathematical arithmetic.
-- **Generative AI Layer (LLM RAG)**:
-    Powered by Gemini 1.5 Flash for natural language intent classification,
-    persona-tailored executive summaries, and multi-turn business Q&A.
-- **The AI Courtroom (Tribunal)**:
-    Cross-examines internal customer reviews, external marketing promotions,
-    and database integrity to establish a 94% calibrated burden of proof.
-- **Closed-Loop Realization Tracking**:
-    Each prescriptive playbook links `Driver → Lever → Action → Owner →
-    Expected Impact → 7-Day Monitoring` with a 94.1% historical accuracy track
-    record.
-
-
-## Challenge scenarios
-
-The application includes interactive simulators for the three primary
-competition scenarios in the top navigation bar:
-
-1. **🎯 Scenario 1: Multi-Factor KPI Attribution**:
-    Decomposes an -8.4% weekly revenue decline into Volume Contraction (51%),
-    Product Mix Shift (24%), and Payment Friction (15%).
-1. **⚠️ Scenario 2: Contradictory Telemetry & Active Abstention**:
-    Demonstrates active abstention when telemetry is stale or contradictory
-    (41% confidence). Features a human-in-the-loop diagnostic poll that
-    dynamically diagnoses either Promo Expiry (+94.6% confidence) or Tracking
-    Pixel Data Loss (+96.8% confidence).
-1. **🚀 Scenario 3: Sparse History & New Product Launch**:
-    An interactive simulation sandbox with an observation window slider (1 to
-    60 days) illustrating how the engine suppresses false alarms during early
-    ramp (< 7 days) and switches to Category Peer Cohort Proxy Benchmarks.
+1. Test competition challenge scenarios using the scenario buttons:
+    - **🎯 Scenario 1: Multi-Factor KPI Attribution**: Decomposes an -8.4%
+        weekly revenue decline into Volume (51%), Mix (24%), and Payment (15%).
+    - **⚠️ Scenario 2: Contradictory Telemetry & Active Abstention**:
+        Demonstrates active abstention when telemetry is stale or contradictory
+        (41% confidence) with human-in-the-loop diagnostic polling.
+    - **🚀 Scenario 3: Sparse History & New Product Launch**: Interactive
+        observation window sandbox illustrating early ramp (< 7 days) false
+        alarm suppression and Category Peer Cohort Proxy Benchmarks.
 
 
 ## Troubleshooting
+
+If you encounter issues during installation or runtime, check the following:
 
 - **Server fails to bind to port 8000**:
     Verify that no other application is using port 8000, or modify the port
@@ -172,6 +140,14 @@ semantic layer automatically joins them on common entity keys (`order_id`,
 **A:** Click the `👔 Manager` or `📊 Analyst` buttons in the top-right header
 bar. The entire interface updates immediately with role-tailored narratives,
 appropriate data granularity, and RBAC security masking.
+
+**Q: What methodology powers the AI Courtroom?**
+
+**A:** The Tribunal cross-examines evidence across three distinct agents: the
+Internal Operational Detective (customer reviews and logistics logs), Market &
+Context Spy (promotional campaigns and competitor elasticity), and Data
+Integrity Sentry (schema and database replica validation), establishing a 94%
+calibrated burden of proof.
 
 
 ## Maintainers
